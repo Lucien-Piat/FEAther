@@ -1,3 +1,11 @@
+# -----------------------------------------
+# Project: FEA-ther (Functional Enrichment Analysis Tool)
+# Author: Lucien Piat
+# Affiliation: Rouen Normandie University
+# Date: 04/10/2024
+# Description: Custom theme made for the FEAther project
+# -----------------------------------------
+
 customTheme <- shinyDashboardThemeDIY(
   ### general
   appFontFamily = "Helvetica",

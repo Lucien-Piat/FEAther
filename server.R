@@ -1,3 +1,11 @@
+# -----------------------------------------
+# Project: FEA-ther (Functional Enrichment Analysis Tool)
+# Author: Lucien Piat
+# Affiliation: Rouen Normandie University
+# Date: 04/10/2024
+# Description: Server side of the project
+# -----------------------------------------
+
 function(input, output, session) {
   
   # Reactive expression to read the uploaded file
