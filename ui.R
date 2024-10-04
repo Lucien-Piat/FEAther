@@ -11,7 +11,16 @@ library(dashboardthemes)
 library(DT)
 
 
-# Custom theme
+customMenuItem <- function(label, tabName, imgSrc, imgHeight = "30px", imgWidth = "30px") {
+  tags$li(class = "nav-item", 
+          tags$a(href = "#", class = "nav-link", 
+                 tags$img(src = imgSrc, height = imgHeight, width = imgWidth),
+                 label, 
+                 `data-toggle` = "tab", `data-value` = tabName
+          )
+  )
+}
+
 customTheme <- shinyDashboardThemeDIY(
   ### general
   appFontFamily = "Helvetica",
@@ -127,6 +136,7 @@ dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem("Home", tabName = "home", icon = icon("dashboard"), selected = TRUE),
+
       fileInput("file", "Chosir un Fichier", width = '100%', 
                 placeholder = "Your CSV", buttonLabel = 'Import'),
       fluidRow(
@@ -134,13 +144,16 @@ dashboardPage(
         column(8, selectInput("separator", 'Separator', 
                               choices = c('Comma', 'Tab', 'Space', 'Dot')))
       ),
+      tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       selectInput("organism", 'Select an organism name', 
                   choices = c('Homo sapiens', "Quercus robur")),
+      tags$hr(style = "border: 1.5px solid #5c2a5c;"), 
       sidebarMenu(
-        menuItem("Item 1", tabName = "item_1"),
-        menuItem("Item 2", tabName = "item_2"),
-        menuItem("Item 3", tabName = "item_3"),
-        menuItem("Item 4", tabName = "item_4")
+        customMenuItem("  Item 1", "item_1", "item.png"),
+        customMenuItem("  Item 2", "item_2", "item.png"),
+        customMenuItem("  Item 3", "item_3", "item.png"),
+        customMenuItem("  Item 4", "item_4", "item.png")
+        
       )
     ),
     # Separate section for About at the bottom
