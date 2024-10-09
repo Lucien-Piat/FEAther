@@ -60,10 +60,9 @@ dashboardPage(
       selectInput("organism", 'Select an organism name', choices = c('Homo sapiens', "Quercus robur")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       sidebarMenu(
-        customMenuItem("  Item 1", "item_1", "item.png"), # Use this custom function to add an image for max fun
-        customMenuItem("  Item 2", "item_2", "item.png"),
-        customMenuItem("  Item 3", "item_3", "item.png"),
-        customMenuItem("  Item 4", "item_4", "item.png")
+        customMenuItem("  Whole Data Inspection", "item_1", "item.png"), # Use this custom function to add an image for max fun
+        customMenuItem("  Go Term Enrichement", "item_2", "item.png"),
+        customMenuItem("  Pathway Enrichement", "item_3", "item.png")
       ),
       sidebarMenu(menuItem("About", tabName = "about", icon = icon("info-circle")))
     )
@@ -82,12 +81,11 @@ dashboardPage(
       tabItem(tabName = "home",
               h2("Functional Enrichment Analysis"),
               fluidRow(
-                box(title = "Box 1", withSpinner(plotOutput("plot_1", height = 250))),
-                box(title = "Box 2", withSpinner(plotOutput("plot_2", height = 250)))
-              ),
-              fluidRow(
-                box(width = 9, sliderInput("slider", "Slider", 1, 100, 50)),
-                downloadButton("download", label = "Download")
+                box(title = "Volcano Plot", width = 7, withSpinner(plotOutput("plot_1", height = 250))),
+                box(title = "Options", width = 5, 
+                    sliderInput("slider", "Slider", 1, 100, 50),
+                    sliderInput("slider", "Slider", 1, 100, 50),
+                    downloadButton("download", label = "Download"))
               ),
               fluidRow(box(width = 12, withSpinner(dataTableOutput("table"))))  # Add spinner to the table
       ),
