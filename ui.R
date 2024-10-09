@@ -91,11 +91,8 @@ dashboardPage(
               ),
               fluidRow(box(width = 12, withSpinner(dataTableOutput("table"))))  # Add spinner to the table
       ),
-      tabItem(tabName = "about",
-              h2("FEA-ther, Functional Enrichment Analysis"),
-              p("Is a tool coded by Lucien PIAT for M2.1 BIMS à Rouen Normandie University"),
-              p("Go to the GitHub: https://github.com/Lucien-Piat/FEAther")
-      )
+      # Create the about tab from custom function
+      aboutTab()
     )
   )
 )

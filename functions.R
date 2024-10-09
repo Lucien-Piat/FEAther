@@ -43,4 +43,19 @@ customMenuItem <- function(label,
   )
 }
 
+# Function to create a custom sidebar menu item with an image
+#
+#@return a tabItem for the about section
+aboutTab <- function() {
+  tabItem(tabName = "about", 
+          h2("FEA-ther, Functional Enrichment Analysis"),
+          p("This tool was coded by Lucien Piat for the M2.1 BIMS program at Rouen Normandie University."),
+          p("The FEA-ther tool allows users to perform functional enrichment analysis on biological data."),
+          p("Users can visualize the results through interactive plots and tables."),
+          p("For more information or to contribute to the project, visit the GitHub repository:"),
+          a(href = "https://github.com/Lucien-Piat/FEAther", 
+            "https://github.com/Lucien-Piat/FEAther")
+  )
+}   
+
 
