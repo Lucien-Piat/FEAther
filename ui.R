@@ -11,7 +11,7 @@
 # -----------------------------------------
 
 # Install the required packages
-required_packages <- c("shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT")
+required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT")
 new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 
 if (length(new_packages)) {
@@ -25,6 +25,12 @@ library(shinyalert)
 library(shinydashboard)
 library(dashboardthemes)
 library(DT)
+
+# Import the functions from another script
+source("functions.R")
+
+# Import the custom theme i created
+source("custom_theme.R")
 
 dashboardPage(
   
