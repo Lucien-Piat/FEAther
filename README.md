@@ -14,6 +14,14 @@ Date: 04/10/2024
 - Visualize results using interactive plots.
 - User-friendly interface for ease of use.
 
+## Resources
+
+- ui.R, the code for the user interface
+- server.R, the code for the server
+- custom_theme.R, the code for the custom theme
+- functions.R, the code for additional functions
+- ./www, additional files
+
 ## Installation
 
 To run the application, you need to have R and the following R packages installed:
