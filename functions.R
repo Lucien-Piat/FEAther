@@ -56,6 +56,19 @@ aboutTab <- function() {
           a(href = "https://github.com/Lucien-Piat/FEAther", 
             "https://github.com/Lucien-Piat/FEAther")
   )
-}   
+}
+
+# Function to trigger shinyalert error with a custom message
+show_shiny_error <- function(title, message) {
+  shinyalert::shinyalert(
+    title = title,
+    text = tags$div(
+      tags$img(src = "dodo.png", height = "50px"),
+      tags$p(message)
+    ),
+    type = "error",
+    html = TRUE
+  )
+}
 
 
