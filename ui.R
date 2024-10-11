@@ -11,7 +11,7 @@
 # -----------------------------------------
 
 # Install the required packages
-required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT")
+required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT", "ggiraph","zip","ggplot2")
 new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 
 if (length(new_packages)) {
@@ -25,9 +25,12 @@ library(shinyalert)
 library(shinydashboard)
 library(dashboardthemes)
 library(DT)
+library(ggiraph)
+library(ggplot2)
 
 # Import the functions from another script
 source("functions.R")
+source("server.R")
 
 # Import the custom theme i created
 source("custom_theme.R")
@@ -82,7 +85,7 @@ dashboardPage(
       tabItem(tabName = "home",
               h2("Functional Enrichment Analysis"),
               fluidRow(
-                box(title = "Volcano Plot", width = 7, withSpinner(plotOutput("plot_1", height = 250))),
+                box(title = "Volcano Plot", width = 7, withSpinner(girafeOutput("plot_1", height = 400))),
                 box(title = "Options", width = 5, 
                     sliderInput("p_val_slider","P-value cutoff from input", 0, 1, 0.05, step = 0.01),
                     sliderInput("log2FC_slider","log2 FoldChange cutoff from input:", 0, 5, 1, step = 0.1),
