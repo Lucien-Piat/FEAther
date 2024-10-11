@@ -45,7 +45,6 @@ dashboardPage(
     ),
     titleWidth = 230
   ),
-  het
   
   # -----------------------------------------
   # Sidebar, with images, custom color and a full file input suite
