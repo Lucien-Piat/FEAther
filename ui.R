@@ -55,9 +55,9 @@ dashboardPage(
       menuItem("Home", tabName = "home", icon = icon('dove'), selected = TRUE),
       fileInput("file", "Choose a File", width = '100%', placeholder = "Your CSV", buttonLabel = 'Import'),
       fluidRow(column(4, checkboxInput("header", "Header", TRUE)), 
-               column(8, selectInput("separator", 'Separator', choices = c('Comma', 'Tab', 'Space', 'Dot')))),
+               column(8, selectInput("separator", 'Separator', choices = c('Semicolon', 'Comma', 'Tab', 'Space', 'Dot')))),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-      selectInput("organism", 'Select an organism name', choices = c('Homo sapiens', "Quercus robur")),
+      selectInput("organism", 'Select an organism name', choices = c('Pavo cristatus', " Afropavo congensis", " Pavo muticus")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       sidebarMenu(
         customMenuItem("  Whole Data Inspection", "item_1", "item.png"), # Use this custom function to add an image for max fun

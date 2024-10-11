@@ -12,7 +12,8 @@ function(input, output, session) {
   data <- reactive({
     req(input$file)  # Require the file input to be available
     
-    separator <- switch(input$separator, 
+    separator <- switch(input$separator,
+                        Semicolon = ';',
                         Comma = ",", 
                         Tab = "\t", 
                         Space = " ", 
