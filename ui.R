@@ -32,7 +32,7 @@ library(ggplot2)
 source("functions.R")
 source("server.R")
 
-# Import the custom theme i created
+# Import the custom theme
 source("custom_theme.R")
 
 dashboardPage(
@@ -55,20 +55,25 @@ dashboardPage(
   
   dashboardSidebar(
     sidebarMenu(
-      menuItem("Home", tabName = "home", icon = icon('dove'), selected = TRUE),
+      tags$li(
+        class = "nav-item",
+        tags$a(
+          href = "#",
+          class = "nav-link",
+          icon('dove'),
+          "Home, select your analysis ↓", style = "font-size: 15px;" # Adjust font size as needed
+        )
+      ),
       fileInput("file", "Choose a File", width = '100%', placeholder = "Your CSV", buttonLabel = 'Import'),
       fluidRow(column(4, checkboxInput("header", "Header", TRUE)), 
                column(8, selectInput("separator", 'Separator', choices = c('Semicolon', 'Comma', 'Tab', 'Space', 'Dot')))),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-      selectInput("organism", 'Select an organism name', choices = c('Pavo cristatus', " Afropavo congensis", " Pavo muticus")),
+      selectInput("organism", 'Select an organism name', choices = c('Pavo cristatus', "Afropavo congensis", "Pavo muticus")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-      sidebarMenu(
-        customMenuItem("  Whole Data Inspection", "item_1", "item.png"), # Use this custom function to add an image for max fun
-        customMenuItem("  Go Term Enrichement
-", "item_2", "item.png"),
-        customMenuItem("  Pathway Enrichement", "item_3", "item.png")
-      ),
-      sidebarMenu(menuItem("About", tabName = "about", icon = icon("info-circle")))
+      menuItem("  Whole Data Inspection", tabName = "whole_data_inspection_mitem", icon = icon("eye"), selected = TRUE),
+      menuItem("  Go Term Enrichment", tabName = "go_term_enrichment_mitem", icon = icon("database")),
+      menuItem("  Pathway Enrichment", tabName = "pathway_enrichment_mitem", icon = icon("repeat")),
+      menuItem("About", tabName = "about", icon = icon("info-circle"))
     )
   ),
   
@@ -82,8 +87,8 @@ dashboardPage(
     
     # Define tab items
     tabItems(
-      tabItem(tabName = "home",
-              h2("Functional Enrichment Analysis"),
+      tabItem(tabName = "whole_data_inspection_mitem",
+              h2("Whole Data Inspection"),
               fluidRow(
                 box(title = "Volcano Plot", width = 7, withSpinner(girafeOutput("plot_1", height = 400))),
                 box(title = "Options", width = 5, 
@@ -93,8 +98,15 @@ dashboardPage(
               ),
               fluidRow(box(width = 12, withSpinner(dataTableOutput("table"))))  # Add spinner to the table
       ),
-      # Create the about tab from custom function
-      aboutTab()
+      tabItem(tabName = "go_term_enrichment_mitem",
+              h2("Go Term Enrichment"),
+              p("#TODO")
+      ),
+      tabItem(tabName = "pathway_enrichment_mitem",
+              h2("Pathway Enrichment"),
+              p("#TODO")
+      ),
+      aboutTab() # Create the about tab from custom function
     )
   )
 )
