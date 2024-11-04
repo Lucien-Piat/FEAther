@@ -28,7 +28,7 @@ library(DT)
 library(ggiraph)
 library(ggplot2)
 
-# Import the functions from another script
+# Import the functions
 source("functions.R")
 source("server.R")
 
