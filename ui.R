@@ -90,7 +90,7 @@ dashboardPage(
       tabItem(tabName = "whole_data_inspection_mitem",
               h2("Whole Data Inspection"),
               fluidRow(
-                box(title = "Volcano Plot", width = 7, withSpinner(girafeOutput("plot_1", height = 400))),
+                box(title = "Volcano Plot", width = 7, withSpinner(girafeOutput("volcano_plot", height = 400))),
                 box(title = "Options", width = 5, 
                     sliderInput("p_val_slider","P-value cutoff from input", 0, 1, 0.05, step = 0.01),
                     sliderInput("log2FC_slider","log2 FoldChange cutoff from input:", 0, 5, 1, step = 0.1),

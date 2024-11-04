@@ -30,7 +30,7 @@ function(input, output, session) {
   })
   
   # Render the volcano plot
-  output$plot_1 <- renderGirafe({
+  output$volcano_plot <- renderGirafe({
     df <- req(data())  # Ensure data is available
     
     log2FC_cutoff <- input$log2FC_slider
