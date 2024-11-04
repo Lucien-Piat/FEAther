@@ -1,30 +1,37 @@
 function(input, output, session) {
   
-  # Reactive expression to read the uploaded file
   data <- reactive({
     req(input$file)  # Ensure file input is available
     
-    # Check if the uploaded file is a CSV file
-    if (tools::file_ext(input$file$name) != "csv") {
-      show_shiny_error("File upload error", "Please upload a file with a .csv extension.")
+    # Check if the uploaded file has a valid extension (CSV, TXT, TSV, or DAT)
+    file_ext <- tools::file_ext(input$file$name)
+    if (!(file_ext %in% c("csv", "txt", "tsv", "dat"))) {
+      show_shiny_error("File upload error", "Please upload a tabular data file with one of the following extensions: .csv, .txt, .tsv, or .dat.")
       return(NULL)
     }
     
+    # Add the separator for fread 
     separator <- switch(input$separator,
+                        Auto = 'auto',
                         Semicolon = ';',
                         Comma = ",", 
                         Tab = "\t", 
                         Space = " ", 
                         Dot = ".")
     
-    df <- read.csv(input$file$datapath, header = input$header, sep = separator, stringsAsFactors = FALSE)
-    req(nrow(df) > 0)  # Ensure the data frame is not empty
+    # Define the desired column names
+    column_names <- c("GeneName", "ID", "baseMean", "log2FC", "pval", "padj")
     
-    # Check if the required columns are present
-    if (!all(c("GeneName", "ID", "log2FC", "pval") %in% colnames(df))) {
-      show_shiny_error("File upload error", "The uploaded file must contain 'GeneName', 'ID', 'log2FC', and 'pval' columns.")
+    # Use fread with specified column names
+    df <- tryCatch({
+      fread(input$file$datapath, sep = separator, header = TRUE, col.names = column_names)
+    }, error = function(e) {
+      show_shiny_error("File upload error", HTML("There was an error reading the file.<br><br>Provide a file with exactly 6 columns:<br>'GeneName', 'ID', 'baseMean', 'log2FC', 'pval', and 'padj'.<br><br>A header row is optional."))
       return(NULL)
-    }
+    })
+    
+    # Ensure the data frame is not empty
+    req(nrow(df) > 0)
     
     df  # Return the dataframe
   })

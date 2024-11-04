@@ -11,7 +11,7 @@
 # -----------------------------------------
 
 # Install the required packages
-required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT", "ggiraph","zip","ggplot2")
+required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT", "ggiraph","zip","ggplot2", "data.table")
 new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
 
 if (length(new_packages)) {
@@ -27,6 +27,7 @@ library(dashboardthemes)
 library(DT)
 library(ggiraph)
 library(ggplot2)
+library(data.table)
 
 # Import the functions
 source("functions.R")
@@ -65,8 +66,8 @@ dashboardPage(
         )
       ),
       fileInput("file", "Choose a File", width = '100%', placeholder = "Your CSV", buttonLabel = 'Import'),
-      fluidRow(column(4, checkboxInput("header", "Header", TRUE)), 
-               column(8, selectInput("separator", 'Separator', choices = c('Semicolon', 'Comma', 'Tab', 'Space', 'Dot')))),
+      tags$hr(style = "border: 1.5px solid #5c2a5c;"),
+      selectInput("separator", 'Separator', choices = c('Auto', 'Semicolon', 'Comma', 'Tab', 'Space', 'Dot')),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       selectInput("organism", 'Select an organism name', choices = c('Pavo cristatus', "Afropavo congensis", "Pavo muticus")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
