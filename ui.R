@@ -10,13 +10,19 @@
 # Usage: Load the required packages, upload your data, and follow the on-screen instructions.
 # -----------------------------------------
 
-# Install the required packages
-required_packages <- c("shiny","shinycssloaders", "shinyalert", "shinydashboard", "dashboardthemes", "DT", "ggiraph","zip","ggplot2", "data.table")
-new_packages <- required_packages[!(required_packages %in% installed.packages()[, "Package"])]
-
-if (length(new_packages)) {
-  install.packages(new_packages)
+#Install the packages
+check_and_install_packages <- function(packages) {
+  new_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+  if (length(new_packages)) {
+    install.packages(new_packages)
+  }
+  lapply(packages, require, character.only = TRUE)
 }
+required_packages <- c(
+  "shiny", "shinycssloaders", "shinyalert", "shinydashboard", 
+  "dashboardthemes", "DT", "ggiraph", "zip", "ggplot2", "data.table"
+)
+check_and_install_packages(required_packages)
 
 # Load the packages
 library(shiny)
@@ -42,13 +48,7 @@ dashboardPage(
   # HEADER, with an image
   # -----------------------------------------
   
-  dashboardHeader(
-    title = tags$div(style = "display: flex; align-items: center;",
-                     tags$img(src = "logo.png", height = "50px"),
-                     tags$span(style = "margin-left: 20px;", "FEA-ther")
-    ),
-    titleWidth = 230
-  ),
+  create_dashboard_header(), 
   
   # -----------------------------------------
   # Sidebar, with images, custom color and a full file input suite
@@ -97,14 +97,20 @@ dashboardPage(
                     sliderInput("log2FC_slider","log2 FoldChange cutoff from input:", 0, 5, 1, step = 0.1),
                     downloadButton("download", label = "Download volcano plot"))
               ),
-              fluidRow(box(width = 12, withSpinner(dataTableOutput("table"))))  # Add spinner to the table
+              fluidRow(box(title = "Filtered table", width = 12, withSpinner(dataTableOutput("table"))))  # Add spinner to the table
       ),
       tabItem(tabName = "go_term_enrichment_mitem",
               h2("Go Term Enrichment"),
+              tags$div(style = "text-align: center;",
+                       tags$img(src = "dodo.png", height = "100", alt = "dodo")
+              ),
               p("#TODO")
       ),
       tabItem(tabName = "pathway_enrichment_mitem",
               h2("Pathway Enrichment"),
+              tags$div(style = "text-align: center;",
+                       tags$img(src = "dodo.png", height = "100", alt = "dodo")
+              ),
               p("#TODO")
       ),
       aboutTab() # Create the about tab from custom function
