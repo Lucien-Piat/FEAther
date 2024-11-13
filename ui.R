@@ -15,8 +15,7 @@
 source("functions.R")
 source("server.R")
 
-# Import the custom theme
-source("custom_theme.R")
+
 
 #Install the packages
 required_packages <- c(
@@ -25,6 +24,8 @@ required_packages <- c(
 )
 load_required_packages(required_packages)
 
+# Import the custom theme
+source("custom_theme.R")
 
 dashboardPage(
   
