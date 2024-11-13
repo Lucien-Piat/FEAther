@@ -9,14 +9,13 @@ source("functions.R")
 
 # Function used by the UI
 function(input, output, session) {
-  
   # -----------------------------------------
-  # Data input 
+  # Data input
   # -----------------------------------------
   
   # Reactive expression for loading and processing the data
   data <- reactive({
-    req(input$file)  # Ensure file input is available
+    req(input$file) # Ensure file input is available
     
     # Check if the uploaded file has a valid extension (CSV, TXT, TSV, or DAT)
     file_ext <- tools::file_ext(input$file$name)
@@ -25,14 +24,8 @@ function(input, output, session) {
       return(NULL)
     }
     
-    # Add the separator for fread 
-    separator <- switch(input$separator,
-                        Auto = 'auto',
-                        Semicolon = ';',
-                        Comma = ",", 
-                        Tab = "\t", 
-                        Space = " ", 
-                        Dot = ".")
+    # Add the separator for fread
+    separator <- switch(input$separator, Auto = "auto", Semicolon = ";", Comma = ",", Tab = "\t", Space = " ", Dot = ".")
     
     # Define the desired column names
     column_names <- c("GeneName", "ID", "baseMean", "log2FC", "pval", "padj")
@@ -44,29 +37,19 @@ function(input, output, session) {
       show_shiny_error("File upload error", HTML("There was an error reading the file.<br><br>Provide a file with exactly 6 columns:<br>'GeneName', 'ID', 'baseMean', 'log2FC', 'pval', and 'padj'.<br><br>A header row is optional."))
       return(NULL)
     })
-    
-    # Ensure the data frame is not empty
-    req(nrow(df) > 0)
-    
-    df  # Return the dataframe
+    req(nrow(df) > 0) # Ensure the data frame is not empty
+    df # Return the dataframe
   })
   
   # -----------------------------------------
-  # Filter data 
+  # Filter data
   # -----------------------------------------
   
   # Reactive expression for filtering the data based on slider inputs
   filtered_data <- reactive({
-    df <- req(data())  # Ensure data is available
-    
-    # Apply filtering based on log2FC and p-value thresholds
-    df_filtered <- df %>%
-      dplyr::filter(
-        abs(log2FC) >= input$log2FC_slider,
-        pval <= input$p_val_slider
-      )
-    
-    df_filtered  # Return the filtered dataframe
+    df <- req(data()) # Ensure data is available
+    df_filtered <- df %>% dplyr::filter(abs(log2FC) >= input$log2FC_slider, pval <= input$p_val_slider)
+    df_filtered # Return the filtered dataframe
   })
   
   # -----------------------------------------
@@ -74,50 +57,30 @@ function(input, output, session) {
   # -----------------------------------------
   
   volcano_plot <- reactive({
-    df <- req(data())  # Ensure data is available
-    
-    # Create a volcano plot using ggplot
-    plot <- filtered_plot(df, input$log2FC_slider, input$p_val_slider)
-    
-    # Make the plot interactive with hover and zoom functionality
-    girafe(ggobj = plot, options = list(
-      opts_hover(css = "fill:#FF6347;stroke:black;cursor:pointer;"),
-      opts_zoom(min = 1, max = 5)
-    ))
+    df <- req(data()) # Ensure data is available
+    plot <- filtered_plot(df, input$log2FC_slider, input$p_val_slider) # Create a volcano plot
+    girafe(ggobj = plot, options = list(opts_hover(css = "fill:#FF6347;stroke:black;cursor:pointer;"), opts_zoom(min = 1, max = 5))) # Interactive plot
   })
-
+  
   # Render the volcano plot
-  output$volcano_plot <- renderGirafe({
-    volcano_plot()  # Just render the reactive plot
-  })
+  output$volcano_plot <- renderGirafe({ volcano_plot() })
   
   # -----------------------------------------
   # Download
   # -----------------------------------------
+  
   output$download <- downloadHandler(
-    #Select the right file to save
     filename = function() {
-      if (input$downloadType == "plot") {
-        paste("volcano_plot_", Sys.Date(), ".png", sep = "")
-      } else {
-        paste("filtered_data_", Sys.Date(), ".csv", sep = "")
-      }
+      if (input$downloadType == "plot") paste("volcano_plot_", Sys.Date(), ".png", sep = "")
+      else paste("filtered_data_", Sys.Date(), ".csv", sep = "")
     },
-    
     content = function(file) {
       if (input$downloadType == "plot") {
-        df <- req(data())  # Ensure data is available
-  
-        # Create a volcano plot using ggplot
+        df <- req(data()) # Ensure data is available
         plot <- filtered_plot(df, input$log2FC_slider, input$p_val_slider)
-        
-        # Save the plot as a PNG file
         ggsave(file, plot = plot, device = "png", width = 8, height = 6, dpi = 300)
-        
       } else if (input$downloadType == "table") {
-        
-        # Download the filtered data table as CSV
-        write.csv(filtered_data(), file, row.names = FALSE)
+        write.csv(filtered_data(), file, row.names = FALSE) # Download CSV
       }
     }
   )
@@ -126,18 +89,8 @@ function(input, output, session) {
   # Render the Table
   # -----------------------------------------
   
-  # Render the filtered data in a DataTable with search and filter options
   output$table <- DT::renderDataTable({
-    req(filtered_data())  # Ensure filtered data is available
-    
-    # Render datatable with options
-    datatable(
-      filtered_data(),
-      options = list(
-        pageLength = 10,        
-        searchHighlight = TRUE, 
-        filter = "top"          
-      )
-    )
+    req(filtered_data()) # Ensure filtered data is available
+    datatable(filtered_data(), options = list(pageLength = 10, searchHighlight = TRUE, filter = "top")) # Render table
   })
 }
