@@ -1,5 +1,6 @@
 function(input, output, session) {
   
+  # Reactive expression for loading and processing the data
   data <- reactive({
     req(input$file)  # Ensure file input is available
     
@@ -36,9 +37,23 @@ function(input, output, session) {
     df  # Return the dataframe
   })
   
+  # Reactive expression for filtering the data based on slider inputs
+  filtered_data <- reactive({
+    df <- req(data())  # Ensure data is available
+    
+    # Apply filtering based on log2FC and p-value thresholds
+    df_filtered <- df %>%
+      dplyr::filter(
+        abs(log2FC) >= input$log2FC_slider,
+        pval <= input$p_val_slider
+      )
+    
+    df_filtered  # Return the filtered dataframe
+  })
+  
   # Render the volcano plot
   output$volcano_plot <- renderGirafe({
-    df <- req(data())  # Ensure data is available
+    df <- req(data())  # Ensure data is aviable
     
     log2FC_cutoff <- input$log2FC_slider
     pval_cutoff <- input$p_val_slider
@@ -71,9 +86,18 @@ function(input, output, session) {
     ))
   })
   
-  # Render the filtered table
+  # Render the filtered data in a DataTable with search and filter options
   output$table <- DT::renderDataTable({
-    req(data())  # Require the filtered data
-    datatable(data(), options = list(pageLength = 10))
+    req(filtered_data())  # Ensure filtered data is available
+    
+    # Render datatable with options
+    datatable(
+      filtered_data(),
+      options = list(
+        pageLength = 10,        # Set number of rows per page
+        searchHighlight = TRUE, # Highlight search results
+        filter = "top"          # Add a filter option on each column
+      )
+    )
   })
 }
