@@ -1,4 +1,17 @@
+# -----------------------------------------
+# Project: FEA-ther (Functional Enrichment Analysis Tool)
+# Author: Lucien Piat
+# Affiliation: Rouen Normandie University
+# Creation: 04/10/2024
+# Last update : 13/11/2024
+# -----------------------------------------
+
+# Function used by the UI
 function(input, output, session) {
+  
+  # -----------------------------------------
+  # Data input 
+  # -----------------------------------------
   
   # Reactive expression for loading and processing the data
   data <- reactive({
@@ -37,6 +50,10 @@ function(input, output, session) {
     df  # Return the dataframe
   })
   
+  # -----------------------------------------
+  # Filter data 
+  # -----------------------------------------
+  
   # Reactive expression for filtering the data based on slider inputs
   filtered_data <- reactive({
     df <- req(data())  # Ensure data is available
@@ -51,17 +68,22 @@ function(input, output, session) {
     df_filtered  # Return the filtered dataframe
   })
   
+  # -----------------------------------------
+  # Create the volcano plot
+  # -----------------------------------------
+  
   # Create the plot for use in both rendering and saving
   volcano_plot <- reactive({
     df <- req(data())  # Ensure data is available
     
+    #Filter and keep all points
     log2FC_cutoff <- input$log2FC_slider
     pval_cutoff <- input$p_val_slider
     
     log2FC_min <- -log2FC_cutoff
     log2FC_max <- log2FC_cutoff
     
-    # Perform -log10 transformation on p-values
+    # Perform -log10 transformation on p-values (optional)
     df$log10_pval <- -log10(df$pval)
     
     # Assign colors based on log2FC and p-value thresholds
@@ -74,24 +96,28 @@ function(input, output, session) {
                            tooltip = paste("Gene:", GeneName, "<br>ID:", ID, "<br>log2FC:", log2FC, "<br>-log10(pval):", log10_pval))) +
       geom_point_interactive(aes(color = color), size = 1) +
       labs(x = "log2 Fold Change (log2FC)", y = "-log10(p-value)") +
-      ylim(0, 10) +  # Cap y-axis limit
-      scale_color_identity() +  # Use color as defined in df$color
+      ylim(0, 10) +  
+      scale_color_identity() +
       theme_minimal() +
-      theme(legend.position = "none")  # Hide legend
+      theme(legend.position = "none")
     
-    # Make the plot interactive with hover and zoom functionality
+    # Make the plot interactive with hover and zoom functionality 
     girafe(ggobj = plot, options = list(
       opts_hover(css = "fill:#FF6347;stroke:black;cursor:pointer;"),
       opts_zoom(min = 1, max = 5)
     ))
   })
-  
+
   # Render the volcano plot
   output$volcano_plot <- renderGirafe({
     volcano_plot()  # Just render the reactive plot
   })
   
+  # -----------------------------------------
+  # Download
+  # -----------------------------------------
   output$download <- downloadHandler(
+    #Select the right file to save
     filename = function() {
       if (input$downloadType == "plot") {
         paste("volcano_plot_", Sys.Date(), ".png", sep = "")
@@ -139,6 +165,10 @@ function(input, output, session) {
     }
   )
   
+  # -----------------------------------------
+  # Render the Table
+  # -----------------------------------------
+  
   # Render the filtered data in a DataTable with search and filter options
   output$table <- DT::renderDataTable({
     req(filtered_data())  # Ensure filtered data is available
@@ -147,9 +177,9 @@ function(input, output, session) {
     datatable(
       filtered_data(),
       options = list(
-        pageLength = 10,        # Set number of rows per page
-        searchHighlight = TRUE, # Highlight search results
-        filter = "top"          # Add a filter option on each column
+        pageLength = 10,        
+        searchHighlight = TRUE, 
+        filter = "top"          
       )
     )
   })

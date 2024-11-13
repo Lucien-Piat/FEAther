@@ -53,30 +53,21 @@ custom_home <- function(){
 aboutTab <- function() {
   tabItem(tabName = "about", 
           h2("FEA-ther: Functional Enrichment Analysis Tool"),
-          
-          # Adding a brief description with bold keywords
           p("Welcome to the ", strong("FEA-ther"), " tool. This application was developed by ", strong("Lucien Piat"), 
             " as part of the M2.1 ", strong("Bioinformatics (BIMS) master"), 
             " at ", strong("Rouen Normandie University"), "."),
-          
           p("FEA-ther allows users to perform ", strong("functional enrichment analysis"), " on ", 
             strong("biological data"), ". By using this tool, users can analyze and interpret biological data, ",
             "identifying significantly enriched ", strong("GO terms"), " and ", strong("pathways"), " associated with their datasets."),
-          
-          # Adding more details about the tool's capabilities
           p("The tool offers:", 
             tags$ul(
               tags$li("Interactive data upload with flexible file format support (", strong(".csv"), ", ", strong(".txt"), ", ", strong(".tsv"), ", ", strong(".dat"), ")."),
               tags$li("Data inspection with customizable ", strong("volcano plots"), " and ", strong("filtering options"), " for fine-tuned analysis."),
               tags$li("More to come..."),
             )),
-          
-          # Including an image (e.g., logo or illustrative image for context)
           tags$div(style = "text-align: center;",
                    tags$img(src = "logo.png", height = "200px", alt = "FEA-ther logo")
           ),
-          
-          # GitHub and contribution information
           p("For more information or to contribute to the project, please visit the project's ", 
             a(href = "https://github.com/Lucien-Piat/FEAther", "GitHub repository"), "."),
   )
