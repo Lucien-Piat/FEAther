@@ -5,6 +5,7 @@
 # Creation: 04/10/2024
 # Last update : 13/11/2024
 # -----------------------------------------
+source("functions.R")
 
 # Function used by the UI
 function(input, output, session) {
@@ -72,36 +73,13 @@ function(input, output, session) {
   # Create the volcano plot
   # -----------------------------------------
   
-  # Create the plot for use in both rendering and saving
   volcano_plot <- reactive({
     df <- req(data())  # Ensure data is available
     
-    #Filter and keep all points
-    log2FC_cutoff <- input$log2FC_slider
-    pval_cutoff <- input$p_val_slider
+    # Create a volcano plot using ggplot
+    plot <- filtered_plot(df, input$log2FC_slider, input$p_val_slider)
     
-    log2FC_min <- -log2FC_cutoff
-    log2FC_max <- log2FC_cutoff
-    
-    # Perform -log10 transformation on p-values (optional)
-    df$log10_pval <- -log10(df$pval)
-    
-    # Assign colors based on log2FC and p-value thresholds
-    df$color <- ifelse(df$pval >= pval_cutoff, "grey",
-                       ifelse(df$log2FC < log2FC_min, "red", 
-                              ifelse(df$log2FC > log2FC_max, "green", "grey")))
-    
-    # Create the volcano plot
-    plot <- ggplot(df, aes(x = log2FC, y = log10_pval,
-                           tooltip = paste("Gene:", GeneName, "<br>ID:", ID, "<br>log2FC:", log2FC, "<br>-log10(pval):", log10_pval))) +
-      geom_point_interactive(aes(color = color), size = 1) +
-      labs(x = "log2 Fold Change (log2FC)", y = "-log10(p-value)") +
-      ylim(0, 10) +  
-      scale_color_identity() +
-      theme_minimal() +
-      theme(legend.position = "none")
-    
-    # Make the plot interactive with hover and zoom functionality 
+    # Make the plot interactive with hover and zoom functionality
     girafe(ggobj = plot, options = list(
       opts_hover(css = "fill:#FF6347;stroke:black;cursor:pointer;"),
       opts_zoom(min = 1, max = 5)
@@ -128,37 +106,16 @@ function(input, output, session) {
     
     content = function(file) {
       if (input$downloadType == "plot") {
-        # Save volcano plot as PNG (same logic as before)
         df <- req(data())  # Ensure data is available
-        
-        log2FC_cutoff <- input$log2FC_slider
-        pval_cutoff <- input$p_val_slider
-        
-        log2FC_min <- -log2FC_cutoff
-        log2FC_max <- log2FC_cutoff
-        
-        # Perform -log10 transformation on p-values
-        df$log10_pval <- -log10(df$pval)
-        
-        # Assign colors based on log2FC and p-value thresholds
-        df$color <- ifelse(df$pval >= pval_cutoff, "grey",
-                           ifelse(df$log2FC < log2FC_min, "red", 
-                                  ifelse(df$log2FC > log2FC_max, "green", "grey")))
-        
-        # Create the volcano plot
-        plot <- ggplot(df, aes(x = log2FC, y = log10_pval,
-                               tooltip = paste("Gene:", GeneName, "<br>ID:", ID, "<br>log2FC:", log2FC, "<br>-log10(pval):", log10_pval))) +
-          geom_point(color = df$color, size = 1) +
-          labs(x = "log2 Fold Change (log2FC)", y = "-log10(p-value)") +
-          ylim(0, 10) +  # Cap y-axis limit
-          scale_color_identity() +  # Use color as defined in df$color
-          theme_minimal() +
-          theme(legend.position = "none")  # Hide legend
+  
+        # Create a volcano plot using ggplot
+        plot <- filtered_plot(df, input$log2FC_slider, input$p_val_slider)
         
         # Save the plot as a PNG file
         ggsave(file, plot = plot, device = "png", width = 8, height = 6, dpi = 300)
         
       } else if (input$downloadType == "table") {
+        
         # Download the filtered data table as CSV
         write.csv(filtered_data(), file, row.names = FALSE)
       }
