@@ -2,25 +2,15 @@
 # Project: FEA-ther (Functional Enrichment Analysis Tool)
 # Author: Lucien Piat
 # Affiliation: Rouen Normandie University
-# Date: 04/10/2024
-# Description: Functions for the project
+# Creation: 04/10/2024
+# Last update : 13/11/2024
 # -----------------------------------------
 
+# -----------------------------------------
+# Graphic functions
+# -----------------------------------------
 
-
-# Function to load required packages
-load_required_packages <- function(required_packages) {
-  
-  # Loop over each package and load it
-  for (pkg in required_packages) {
-    if (!requireNamespace(pkg, quietly = TRUE)) {
-      install.packages(pkg)  # Install package if not already installed
-    }
-    library(pkg, character.only = TRUE)  # Load the package
-  }
-}
-
-
+# Function to create a custom header with an image
 custom_dashboard_header <- function() {
   dashboardHeader(
     title = tags$div(style = "display: flex; align-items: center;",
@@ -31,6 +21,7 @@ custom_dashboard_header <- function() {
   )
 }
 
+# Function to create a custom unclickable home button with an image
 custom_home <- function(){
   tags$li(
     class = "nav-item",
@@ -45,11 +36,7 @@ custom_home <- function(){
   )
 }
 
-
-
-# Function to create a custom sidebar menu item with an image
-#
-#@return a tabItem for the about section
+# Function to create the about tab with usefull infos
 aboutTab <- function() {
   tabItem(tabName = "about", 
           h2("FEA-ther: Functional Enrichment Analysis Tool"),
@@ -74,6 +61,9 @@ aboutTab <- function() {
 }
 
 # Function to trigger shinyalert error with a custom message
+#
+#@title title of the popup
+#@message printed message of the popup
 show_shiny_error <- function(title, message) {
   shinyalert::shinyalert(
     title = title,
@@ -85,3 +75,51 @@ show_shiny_error <- function(title, message) {
     html = TRUE
   )
 }
+
+# -----------------------------------------
+# Logic functions
+# -----------------------------------------
+
+# Function to load required packages
+#
+#@required_packages vector containing the list of packages
+load_required_packages <- function(required_packages) {
+  
+  # Loop over each package and load it
+  for (pkg in required_packages) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      install.packages(pkg)  # Install package if not already installed
+    }
+    library(pkg, character.only = TRUE)  # Load the package
+  }
+}
+
+# Function to create volcanoplot with ggplot coloring the values within a threshold 
+#
+#@df the input data
+#@log2FC_cutoff the threshold for log2fc
+#@pval_cutoff the threshold for log2fc
+#
+#@retrun a ggplot
+filtered_plot <- function(df, log2FC_cutoff, pval_cutoff) {
+  # Filter and assign colors based on log2FC and p-value thresholds
+  df$log10_pval <- -log10(df$pval)
+  
+  df$color <- ifelse(df$pval >= pval_cutoff, "grey",
+                     ifelse(df$log2FC < -log2FC_cutoff, "red", 
+                            ifelse(df$log2FC > log2FC_cutoff, "green", "grey")))
+  
+  # Create the volcano plot with ggplot2 and ggiraph
+  plot <- ggplot(df, aes(x = log2FC, y = log10_pval,
+                         tooltip = paste("Gene:", GeneName, "<br>ID:", ID, 
+                                         "<br>log2FC:", log2FC, "<br>-log10(pval):", log10_pval))) +
+    geom_point_interactive(aes(color = color), size = 1) +
+    labs(x = "log2 Fold Change (log2FC)", y = "-log10(p-value)") +
+    ylim(0, 10) +
+    scale_color_identity() +
+    theme_minimal() +
+    theme(legend.position = "none")
+  
+  return(plot)
+}
+
