@@ -7,21 +7,21 @@
 # -----------------------------------------
 
 
-check_and_install_packages <- function(packages) {
-  # Identify packages that are not installed
-  new_packages <- packages[!(packages %in% installed.packages()[, "Package"])]
+
+# Function to load required packages
+load_required_packages <- function(required_packages) {
   
-  # Install missing packages
-  if (length(new_packages)) {
-    install.packages(new_packages)
+  # Loop over each package and load it
+  for (pkg in required_packages) {
+    if (!requireNamespace(pkg, quietly = TRUE)) {
+      install.packages(pkg)  # Install package if not already installed
+    }
+    library(pkg, character.only = TRUE)  # Load the package
   }
-  
-  # Load all required packages
-  lapply(packages, require, character.only = TRUE)
 }
 
 
-create_dashboard_header <- function() {
+custom_dashboard_header <- function() {
   dashboardHeader(
     title = tags$div(style = "display: flex; align-items: center;",
                      tags$img(src = "logo.png", height = "50px"),
@@ -30,6 +30,22 @@ create_dashboard_header <- function() {
     titleWidth = 230
   )
 }
+
+custom_home <- function(){
+  tags$li(
+    class = "nav-item",
+    tags$a(
+      href = "#",
+      class = "nav-link",
+      # Text first, then image on the right
+      "Home, select your analysis ↓", style = "font-size: 14px;",  # Adjust font size as needed
+      # Add image to the right of the text with some margin to the left
+      tags$img(src = "item.png", height = "30px", style = "margin-left: 0px;")  # Adjust margin as needed
+    )
+  )
+}
+
+
 
 # Function to create a custom sidebar menu item with an image
 #
