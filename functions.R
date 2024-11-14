@@ -78,15 +78,6 @@ show_shiny_error <- function(title, message) {
 # Logic functions
 # -----------------------------------------
 
-# Function to load required packages
-# @required_packages Vector containing the list of packages
-load_required_packages <- function(required_packages) {
-  for (pkg in required_packages) {
-    if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg) # Install if not installed
-    library(pkg, character.only = TRUE) # Load the package
-  }
-}
-
 # Function to create volcanoplot with ggplot, coloring values within a threshold
 # @df The input data
 # @log2FC_cutoff The threshold for log2fc

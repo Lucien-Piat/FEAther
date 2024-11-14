@@ -7,7 +7,7 @@
 # -----------------------------------------
 
 source("functions.R")
-source("custom_theme.R")
+source("www/custom_theme.R")
 
 # UI object of the app
 ui = dashboardPage(

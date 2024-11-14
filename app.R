@@ -11,17 +11,21 @@
 # Usage: Load the required packages, upload your data, and follow the on-screen instructions.
 # -----------------------------------------
 
+library("shiny")
+library("shinycssloaders")
+library("shinyalert")
+library("shinydashboard")
+library("DT")
+library("dashboardthemes")
+library("ggiraph")
+library("ggplot2")
+library("data.table")
+
+# Import the custom theme
 # Import the functions
 source("functions.R")
 source("server.R")
 source("ui.R")
-
-# Install the packages
-required_packages <- c("shiny", "shinycssloaders", "shinyalert", "shinydashboard",
-                       "dashboardthemes", "DT", "ggiraph", "zip", "ggplot2", "data.table")
-load_required_packages(required_packages)
-
-# Import the custom theme
-source("custom_theme.R")
+source("www/custom_theme.R")
 
 shinyApp(ui, server)
