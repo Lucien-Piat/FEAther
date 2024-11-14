@@ -9,20 +9,26 @@ Affiliation: Rouen Normandie University
 Date: 04/10/2024
 
 ## Features
-- Upload CSV files with biological data.
-- Select options for data processing and analysis.
-- Visualize results using interactive plots.
-- User-friendly interface for ease of use.
+- Data Upload: Accepts CSV, TXT, TSV, and DAT files with flexible format support.
+- Data Inspection: Visual inspection of whole datasets, including customizable volcano plots.
+- Customizable Output: Downloadable plots and tables in CSV and PNG formats.
+_ User-Friendly Interface: A clear, intuitive interface with custom themes and error handling.
 
-## Resources
-
-- ui.R, the code for the user interface
-- server.R, the code for the server
-- custom_theme.R, the code for the custom theme
-- functions.R, the code for additional functions
-- ./www, additional files
-
-## Installation
+## Repository Structure
+The file structure of the repository is as follows:
+```bash
+FEAther/
+├── app.R                # Main file to run the Shiny app
+├── server.R             # Server logic
+├── ui.R                 # UI components and layout
+├── functions.R          # Helper functions for graphics and data handling
+├── www/                 # Directory for additional resources
+│   ├── custom_theme.R   # Custom theme settings
+│   ├── logo.png         
+│   └── dodo.png          
+└── Dockerfile           # Dockerfile to containerize the app
+```
+## Dependencies
 
 To run the application, you need to have R and the following R packages installed:
 
@@ -32,3 +38,49 @@ To run the application, you need to have R and the following R packages installe
 - `shinyalert`
 - `dashboardthemes`
 - `DT`
+- `ggiraph`
+- `ggplot2`
+- `data.table`
+
+You can install these packages in R with:
+```R
+install.packages(c("shiny", "shinydashboard", "shinycssloaders", "shinyalert", 
+                   "dashboardthemes", "DT", "ggiraph", "zip", "ggplot2", "data.table"))
+```
+
+## Running the App
+### With RStudio
+To run FEA-ther in RStudio:
+
+Clone this repository to your local machine:
+
+
+```bash
+git clone https://github.com/yourusername/FEAther.git
+cd FEAther
+```
+
+Open app.R in RStudio and ensure all files in the repository are loaded.
+Install any missing packages (see the Installation section above).
+Click Run App in RStudio.
+
+### Running with Docker
+To run FEA-ther in a Docker container:
+
+1. Build the Docker Image
+From the root of the FEA-ther directory, build the Docker image:
+
+```bash
+docker build -t feather_app .
+```
+
+Run the Docker Container
+Once the build is complete, run the container:
+
+```bash
+docker run -p 3838:3838 feather_app
+```
+
+Access the App
+Open a web browser and go to http://localhost:3838 to use the FEA-ther application.
+
