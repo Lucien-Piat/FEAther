@@ -67,20 +67,16 @@ Click Run App in RStudio.
 ### Running with Docker
 To run FEA-ther in a Docker container:
 
-1. Build the Docker Image
 From the root of the FEA-ther directory, build the Docker image:
 
 ```bash
 docker build -t feather_app .
 ```
 
-Run the Docker Container
 Once the build is complete, run the container:
 
 ```bash
 docker run -p 3838:3838 feather_app
 ```
-
-Access the App
 Open a web browser and go to http://localhost:3838 to use the FEA-ther application.
 
