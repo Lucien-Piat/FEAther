@@ -51,12 +51,13 @@ aboutTab <- function() {
               ", ", strong(".tsv"), ", ", strong(".dat"), ")."),
       tags$li("Data inspection with customizable ", strong("volcano plots"), " and ", strong("filtering options"),
               " for fine-tuned analysis."),
+      tags$li("Output of the plot and table"),
       tags$li("More to come..."))),
     tags$div(
       style = "text-align: center;",
       tags$img(src = "logo.png", height = "200px", alt = "FEA-ther logo")
     ),
-    p("For more information or to contribute to the project, please visit the project's ",
+    p("For more information, please visit the project's ",
       a(href = "https://github.com/Lucien-Piat/FEAther", "GitHub repository"), ".")
   )
 }

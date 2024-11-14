@@ -7,8 +7,8 @@
 # -----------------------------------------
 source("functions.R")
 
-# Function used by the UI
-function(input, output, session) {
+# Server side of the app
+server <- function(input, output, session) {
   # -----------------------------------------
   # Data input
   # -----------------------------------------
