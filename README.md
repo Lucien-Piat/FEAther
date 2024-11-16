@@ -22,8 +22,9 @@ FEAther/
 ├── server.R             # Server logic
 ├── ui.R                 # UI components and layout
 ├── functions.R          # Helper functions for graphics and data handling
+├── custom_theme.R       # Custom theme settings
+├── shiny-server.conf    # Server config
 ├── www/                 # Directory for additional resources
-│   ├── custom_theme.R   # Custom theme settings
 │   ├── logo.png         
 │   └── dodo.png          
 └── Dockerfile           # Dockerfile to containerize the app
@@ -41,11 +42,12 @@ To run the application, you need to have R and the following R packages installe
 - `ggiraph`
 - `ggplot2`
 - `data.table`
+- `dplyr`
 
 You can install these packages in R with:
 ```R
 install.packages(c("shiny", "shinydashboard", "shinycssloaders", "shinyalert", 
-                   "dashboardthemes", "DT", "ggiraph", "zip", "ggplot2", "data.table"))
+                   "dashboardthemes", "DT", "ggiraph", "dplyr", "ggplot2", "data.table"))
 ```
 
 ## Running the App
