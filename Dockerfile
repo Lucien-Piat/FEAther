@@ -12,13 +12,16 @@ RUN apt-get update && apt-get install -y \
 # Install the R packages required by your app
 RUN R -e "install.packages(c('shiny', 'shinycssloaders', 'shinyalert', 'shinydashboard', \
                              'dashboardthemes', 'DT', 'ggiraph', 'ggplot2', \
-                             'data.table'), repos = 'https://cran.rstudio.com/')"
+                             'data.table', 'dplyr'), repos = 'https://cran.rstudio.com/')"
 
 # Create a directory for the Shiny app
 RUN mkdir -p /srv/shiny-server/FEAther
 
 # Copy the Shiny app files into the Docker image
 COPY . /srv/shiny-server/FEAther
+
+# Copy custom Shiny Server configuration
+COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
 
 # Expose the port that Shiny Server listens on
 EXPOSE 3838
