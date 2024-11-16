@@ -29,44 +29,9 @@ FEAther/
 │   └── dodo.png          
 └── Dockerfile           # Dockerfile to containerize the app
 ```
-## Dependencies
-
-To run the application, you need to have R and the following R packages installed:
-
-- `shiny`
-- `shinydashboard`
-- `shinycssloaders`
-- `shinyalert`
-- `dashboardthemes`
-- `DT`
-- `ggiraph`
-- `ggplot2`
-- `data.table`
-- `dplyr`
-
-You can install these packages in R with:
-```R
-install.packages(c("shiny", "shinydashboard", "shinycssloaders", "shinyalert", 
-                   "dashboardthemes", "DT", "ggiraph", "dplyr", "ggplot2", "data.table"))
-```
 
 ## Running the App
-### With RStudio
-To run FEA-ther in RStudio:
-
-Clone this repository to your local machine:
-
-
-```bash
-git clone https://github.com/yourusername/FEAther.git
-cd FEAther
-```
-
-Open app.R in RStudio and ensure all files in the repository are loaded.
-Install any missing packages (see the Installation section above).
-Click Run App in RStudio.
-
-### Running with Docker
+### With Docker (recommended)
 To run FEA-ther in a Docker container:
 
 From the root of the FEA-ther directory, build the Docker image:
@@ -82,3 +47,36 @@ docker run -p 3838:3838 feather_app
 ```
 Open a web browser and go to http://localhost:3838 to use the FEA-ther application.
 
+### With RStudio
+To run FEA-ther in RStudio:
+
+Clone this repository to your local machine:
+
+```bash
+git clone https://github.com/yourusername/FEAther.git
+cd FEAther
+```
+
+Open app.R in RStudio and ensure all files in the repository are loaded.
+
+Install any missing packages :
+```R
+install.packages(c("shiny", "shinydashboard", "shinycssloaders", "shinyalert", 
+                   "dashboardthemes", "DT", "ggiraph", "dplyr", "ggplot2", "data.table"))
+```
+Click Run App in RStudio.
+
+## Dependencies
+
+List of R packages used in the FEA-ther app :
+
+- `shiny`
+- `shinydashboard`
+- `shinycssloaders`
+- `shinyalert`
+- `dashboardthemes`
+- `DT`
+- `ggiraph`
+- `ggplot2`
+- `data.table`
+- `dplyr`
