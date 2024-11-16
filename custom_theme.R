@@ -5,7 +5,7 @@
 # Date: 04/10/2024
 # Description: Custom theme made for the FEAther project
 # -----------------------------------------
-
+library(dashboardthemes)
 customTheme <- shinyDashboardThemeDIY(
   ### general
   appFontFamily = "Helvetica",

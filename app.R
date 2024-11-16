@@ -11,6 +11,7 @@
 # Usage: Load the required packages, upload your data, and follow the on-screen instructions.
 # -----------------------------------------
 
+# Load required libraries
 library("shiny")
 library("shinycssloaders")
 library("shinyalert")
@@ -20,12 +21,13 @@ library("dashboardthemes")
 library("ggiraph")
 library("ggplot2")
 library("data.table")
+library("dplyr")
 
-# Import the custom theme
-# Import the functions
-source("functions.R")
-source("server.R")
-source("ui.R")
-source("www/custom_theme.R")
+# Source external functions, server, UI, and custom theme before calling shinyApp
+source("functions.R")     # Functions for your app
+source("server.R")        # Server logic
+source("ui.R")            # UI layout
+source("custom_theme.R")  # Custom theme for your app
 
+# Call shinyApp after everything is sourced
 shinyApp(ui, server)

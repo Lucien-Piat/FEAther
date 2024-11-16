@@ -5,6 +5,16 @@
 # Creation: 04/10/2024
 # Last update : 13/11/2024
 # -----------------------------------------
+library("shiny")
+library("shinycssloaders")
+library("shinyalert")
+library("shinydashboard")
+library("DT")
+library("dashboardthemes")
+library("ggiraph")
+library("ggplot2")
+library("data.table")
+library("dplyr")
 source("functions.R")
 
 # Server side of the app
@@ -90,7 +100,9 @@ server <- function(input, output, session) {
   # -----------------------------------------
   
   output$table <- DT::renderDataTable({
-    req(filtered_data()) # Ensure filtered data is available
-    datatable(filtered_data(), options = list(pageLength = 10, searchHighlight = TRUE, filter = "top")) # Render table
+    data <- filtered_data()
+    req(data)  # Ensure data is available
+    datatable(data)  # Render table without additional options
   })
+  
 }

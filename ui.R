@@ -5,9 +5,18 @@
 # Creation: 04/10/2024
 # Last update : 13/11/2024
 # -----------------------------------------
-
+library("shiny")
+library("shinycssloaders")
+library("shinyalert")
+library("shinydashboard")
+library("DT")
+library("dashboardthemes")
+library("ggiraph")
+library("ggplot2")
+library("data.table")
+library("dplyr")
 source("functions.R")
-source("www/custom_theme.R")
+source("custom_theme.R")
 
 # UI object of the app
 ui = dashboardPage(
