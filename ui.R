@@ -16,7 +16,7 @@ library("ggplot2")
 library("data.table")
 library("dplyr")
 source("functions.R")
-source("custom_theme.R")
+source(file.path("www", "custom_theme.R"))
 
 # UI object of the app
 ui <- dashboardPage(

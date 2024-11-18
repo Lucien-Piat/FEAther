@@ -22,10 +22,10 @@ FEAther/
 ├── server.R             # Server logic
 ├── ui.R                 # UI components and layout
 ├── functions.R          # Helper functions for graphics and data handling
-├── custom_theme.R       # Custom theme settings
 ├── shiny-server.conf    # Server config
 ├── www/                 # Directory for additional resources
-│   ├── logo.png         
+│   ├── custom_theme.R       # Custom theme settings
+│   ├── logo.png     
 │   └── dodo.png          
 └── Dockerfile           # Dockerfile to containerize the app
 ```

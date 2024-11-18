@@ -27,7 +27,7 @@ library("dplyr")
 source("functions.R")     # Functions for your app
 source("server.R")        # Server logic
 source("ui.R")            # UI layout
-source("custom_theme.R")  # Custom theme for your app
+source(file.path("www", "custom_theme.R"))  # Custom theme for your app
 
 # Call shinyApp after everything is sourced
 shinyApp(ui, server)
