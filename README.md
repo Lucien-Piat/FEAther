@@ -31,6 +31,10 @@ FEAther/
 ```
 
 ## Running the App
+### Online 
+
+Click this link : https://lucien-piat.shinyapps.io/feather/
+
 ### With Docker (recommended)
 To run FEA-ther in a Docker container:
 
@@ -43,7 +47,7 @@ docker build -t feather_app .
 Once the build is complete, run the container:
 
 ```bash
-docker run -p 3838:3838 feather_app
+docker run -d -p 3838:3838 feather_app
 ```
 Open a web browser and go to http://localhost:3838 to use the FEA-ther application.
 
