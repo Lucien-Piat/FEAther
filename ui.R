@@ -3,7 +3,7 @@
 # Author: Lucien Piat
 # Affiliation: Rouen Normandie University
 # Creation: 04/10/2024
-# Last update : 13/11/2024
+# Last update : 18/11/2024
 # -----------------------------------------
 library("shiny")
 library("shinycssloaders")
@@ -14,12 +14,13 @@ library("dashboardthemes")
 library("ggiraph")
 library("ggplot2")
 library("data.table")
-library("dplyr")
 source("functions.R")
 source(file.path("www", "custom_theme.R"))
 
 # UI object of the app
 ui <- dashboardPage(
+    title = "FEA-ther", # Title for the tab name in browser,
+
     # -----------------------------------------
     # HEADER, with an image
     # -----------------------------------------
