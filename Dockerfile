@@ -1,3 +1,11 @@
+# -----------------------------------------
+# Project: FEA-ther (Functional Enrichment Analysis Tool)
+# Author: Lucien Piat
+# Affiliation: Rouen Normandie University
+# Creation: 04/10/2024
+# Last update : 18/11/2024
+# -----------------------------------------
+
 # Use the Rocker Shiny image as the base
 FROM rocker/shiny:latest
 
