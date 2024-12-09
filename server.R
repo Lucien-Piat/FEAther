@@ -33,23 +33,13 @@ server <- function(input, output, session) {
             return(NULL)
         }
 
-        # Add the separator for fread
-        separator <- switch(input$separator,
-            Auto = "auto",
-            Semicolon = ";",
-            Comma = ",",
-            Tab = "\t",
-            Space = " ",
-            Dot = "."
-        )
-
         # Define the desired column names
         column_names <- c("GeneName", "ID", "baseMean", "log2FC", "pval", "padj")
 
         # Use fread with specified column names
         df <- tryCatch(
             {
-                fread(input$file$datapath, sep = separator, header = TRUE, col.names = column_names)
+                fread(input$file$datapath, header = TRUE, col.names = column_names)
             },
             error = function(e) {
                 show_shiny_error("File upload error", HTML("There was an error reading the file.<br><br>Provide a file with exactly 6 columns:<br>'GeneName', 'ID', 'baseMean', 'log2FC', 'pval', and 'padj'.<br><br>A header row is optional."))
