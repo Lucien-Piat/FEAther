@@ -1,6 +1,6 @@
 # -----------------------------------------
 # Project: FEA-ther (Functional Enrichment Analysis Tool)
-# Author: Lucien Piat
+# Author: Maël Louis, Antoine Malet and Lucien Piat 
 # Affiliation: Rouen Normandie University
 # Creation: 04/10/2024
 # Last update : 18/11/2024
@@ -42,7 +42,7 @@ aboutTab <- function() {
         tabName = "about",
         h2("FEA-ther: Functional Enrichment Analysis Tool"),
         p(
-            "Welcome to the ", strong("FEA-ther"), " tool. This application was developed by ", strong("Lucien Piat"),
+            "Welcome to the ", strong("FEA-ther"), " tool. This application was developed by ", strong("Maël Louis, Antoine Malet and Lucien Piat "),
             " as part of the M2.1 ", strong("Bioinformatics (BIMS) master"), " at ", strong("Rouen Normandie University"), "."
         ),
         p(
