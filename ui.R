@@ -37,8 +37,6 @@ ui <- dashboardPage(
             # Input options
             fileInput("file", "Choose a File", width = "100%", placeholder = "Your CSV", buttonLabel = "Import"),
             tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-            selectInput("separator", "Separator", choices = c("Auto", "Semicolon", "Comma", "Tab", "Space", "Dot")),
-            tags$hr(style = "border: 1.5px solid #5c2a5c;"),
             selectInput("organism", "Select an organism name", choices = c("Pavo cristatus", "Afropavo congensis", "Pavo muticus")),
             tags$hr(style = "border: 1.5px solid #5c2a5c;"),
 
