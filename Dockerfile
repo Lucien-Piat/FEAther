@@ -19,8 +19,8 @@ RUN apt-get update && apt-get install -y \
 
 # Install the R packages required by your app
 RUN R -e "install.packages(c('shiny', 'shinycssloaders', 'shinyalert', 'shinydashboard', \
-    'dashboardthemes', 'DT', 'ggiraph', 'ggplot2', \
-    'data.table', 'dplyr'), repos = 'https://cran.rstudio.com/')"
+    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', \
+    'data.table', 'dplyr', 'plotly'), repos = 'https://cran.rstudio.com/')"
 
 # Create a directory for the Shiny app
 RUN mkdir -p /srv/shiny-server/FEAther
