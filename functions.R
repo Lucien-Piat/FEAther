@@ -84,31 +84,3 @@ show_shiny_error <- function(title, message) {
         html = TRUE
     )
 }
-
-# -----------------------------------------
-# Logic functions
-# -----------------------------------------
-
-# Function to create volcanoplot with ggplot, coloring values within a threshold
-# @df The input data
-# @log2FC_cutoff The threshold for log2fc
-# @pval_cutoff The threshold for p-value
-# @return A ggplot
-filtered_plot <- function(df, log2FC_cutoff, pval_cutoff) {
-    df$log10_pval <- -log10(df$pval)
-    df$color <- ifelse(df$pval >= pval_cutoff, "grey",
-        ifelse(df$log2FC < -log2FC_cutoff, "red", ifelse(df$log2FC > log2FC_cutoff, "green", "grey"))
-    )
-    plot <- ggplot(df, aes(
-        x = log2FC,
-        y = log10_pval,
-        tooltip = paste("Gene:", GeneName, "<br>ID:", ID, "<br>log2FC:", log2FC, "<br>-log10(pval):", log10_pval)
-    )) +
-        geom_point_interactive(aes(color = color), size = 1) +
-        labs(x = "log2 Fold Change (log2FC)", y = "-log10(p-value)") +
-        ylim(0, 10) +
-        scale_color_identity() +
-        theme_minimal() +
-        theme(legend.position = "none")
-    return(plot)
-}
