@@ -119,7 +119,9 @@ server <- function(input, output, session) {
   # Enrich
   # -----------------------------------------
   
-  enriched_go <- reactive({
+  # Compute GO enrichment only when the "Enrich" button is clicked
+  # Compute GO enrichment only when "Enrich" is clicked
+  enriched_go <- eventReactive(input$enrich_button, {
     df <- req(filtered_data())  # Get filtered data
     ensembl_ids <- df$ID        # Assuming "ID" column contains Ensembl Gene IDs
     
@@ -132,13 +134,13 @@ server <- function(input, output, session) {
         OrgDb = org.Mm.eg.db  # Use the correct OrgDb for Mus musculus
       ),
       error = function(e) {
-        showNotification("Error in ID conversion. Please check your Ensembl IDs.", type = "error")
+        show_shiny_error("GO enrichment failed", e)
         return(NULL)
       }
     )
     
     if (is.null(id_mapping) || nrow(id_mapping) == 0) {
-      showNotification("No valid ID mappings found.", type = "error")
+      show_shiny_error("GO enrichment failed", "No valid ID mappings found.")
       return(NULL)
     }
     
@@ -147,44 +149,45 @@ server <- function(input, output, session) {
     
     gene_list <- unique(mapped_df$ENTREZID)
     if (length(gene_list) == 0) {
-      showNotification("No valid Entrez IDs for enrichment analysis.", type = "error")
+      show_shiny_error("GO enrichment failed", "No valid Entrez IDs for enrichment analysis.")
       return(NULL)
     }
     
-    # Perform GO enrichment analysis
+    # Perform GO enrichment analysis with user-selected options
     ego <- tryCatch(
       enrichGO(
         gene          = gene_list,
         OrgDb         = org.Mm.eg.db,
         keyType       = "ENTREZID",
-        ont           = "BP",         # Ontology: Biological Process
-        pAdjustMethod = "BH",
-        pvalueCutoff  = 0.05
+        ont           = input$ontology,  # Use selected ontology
+        pAdjustMethod = input$p_adjust_method,  # Use selected p-adjustment method
+        readable      = TRUE
       ),
       error = function(e) {
-        showNotification("GO enrichment analysis failed.", type = "error")
+        show_shiny_error("GO enrichment failed", e)
         return(NULL)
       }
     )
     
     if (is.null(ego) || nrow(ego@result) == 0) {
-      showNotification("No significant GO terms found.", type = "warning")
+      show_shiny_error("GO enrichment failed", "No significant GO terms found.")
       return(NULL)
     }
     return(ego)
   })
-
+  
+  
   # Render GO enrichment plot
   output$go_plot <- renderPlot({
     ego <- enriched_go()
-    req(ego)  # Ensure enrichment results exist
+    req(ego)
     
     if (nrow(ego@result) == 0) {
       plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
       text(1, 1, "No significant GO terms found", col = "red", cex = 1.5)
     } else {
-      dotplot(ego, showCategory = 10) +
-        ggtitle("GO Term Enrichment: Biological Process")
+      dotplot(ego, showCategory = input$show_category,font.size = 12) +  # Uses slider value
+        ggtitle(paste("GO Term Enrichment:", input$ontology)) + theme_minimal()
     }
   })
   
