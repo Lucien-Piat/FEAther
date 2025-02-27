@@ -1,3 +1,24 @@
+# -----------------------------------------
+# Project: FEA-ther (Functional Enrichment Analysis Tool)
+# Author: Maël Louis, Antoine Malet and Lucien Piat 
+# Affiliation: Rouen Normandie University
+# Creation: 04/10/2024
+# Last update: 18/11/2024
+# -----------------------------------------
+
+library("shiny")
+library("shinycssloaders")
+library("shinyalert")
+library("shinydashboard")
+library("DT")
+library("dashboardthemes")
+library("plotly")
+library("data.table")
+source("functions.R")
+library("shinyjs")  
+library('clusterProfiler')
+library("org.Mm.eg.db") 
+
 server <- function(input, output, session) {
   
   # -----------------------------------------
@@ -94,6 +115,80 @@ server <- function(input, output, session) {
     datatable(data)  # Render table without additional options
   })
   
+  # -----------------------------------------
+  # Enrich
+  # -----------------------------------------
+  
+  enriched_go <- reactive({
+    df <- req(filtered_data())  # Get filtered data
+    ensembl_ids <- df$ID        # Assuming "ID" column contains Ensembl Gene IDs
+    
+    # Convert Ensembl IDs to Entrez IDs
+    id_mapping <- tryCatch(
+      bitr(
+        ensembl_ids,
+        fromType = "ENSEMBL",
+        toType = "ENTREZID",
+        OrgDb = org.Mm.eg.db  # Use the correct OrgDb for Mus musculus
+      ),
+      error = function(e) {
+        showNotification("Error in ID conversion. Please check your Ensembl IDs.", type = "error")
+        return(NULL)
+      }
+    )
+    
+    if (is.null(id_mapping) || nrow(id_mapping) == 0) {
+      showNotification("No valid ID mappings found.", type = "error")
+      return(NULL)
+    }
+    
+    # Merge to retain only mapped genes
+    mapped_df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL", all.x = FALSE)
+    
+    gene_list <- unique(mapped_df$ENTREZID)
+    if (length(gene_list) == 0) {
+      showNotification("No valid Entrez IDs for enrichment analysis.", type = "error")
+      return(NULL)
+    }
+    
+    # Perform GO enrichment analysis
+    ego <- tryCatch(
+      enrichGO(
+        gene          = gene_list,
+        OrgDb         = org.Mm.eg.db,
+        keyType       = "ENTREZID",
+        ont           = "BP",         # Ontology: Biological Process
+        pAdjustMethod = "BH",
+        pvalueCutoff  = 0.05
+      ),
+      error = function(e) {
+        showNotification("GO enrichment analysis failed.", type = "error")
+        return(NULL)
+      }
+    )
+    
+    if (is.null(ego) || nrow(ego@result) == 0) {
+      showNotification("No significant GO terms found.", type = "warning")
+      return(NULL)
+    }
+    return(ego)
+  })
+
+  # Render GO enrichment plot
+  output$go_plot <- renderPlot({
+    ego <- enriched_go()
+    req(ego)  # Ensure enrichment results exist
+    
+    if (nrow(ego@result) == 0) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "No significant GO terms found", col = "red", cex = 1.5)
+    } else {
+      dotplot(ego, showCategory = 10) +
+        ggtitle("GO Term Enrichment: Biological Process")
+    }
+  })
+  
+
   # -----------------------------------------
   # Download handler for filtered data
   # -----------------------------------------
