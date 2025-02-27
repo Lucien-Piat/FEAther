@@ -14,7 +14,8 @@ library("dashboardthemes")
 library("plotly")
 library("data.table")
 source("functions.R")
-library("shinyjs")  
+library("shinyjs")
+library("shinyBS")
 source(file.path("www", "custom_theme.R"))
 
 # UI object of the app
@@ -37,7 +38,7 @@ ui <- dashboardPage(
       # Input options
       fileInput("file", "Choose a File", width = "100%", placeholder = "Your CSV", buttonLabel = "Import"),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-      selectInput("organism", "Select an organism name", choices = c("Pavo cristatus", "Afropavo congensis", "Pavo muticus")),
+      selectInput("organism", "Select an organism name", choices = c("Mus musculus", "Homo sapiens")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       
       # Add the menu
@@ -84,18 +85,52 @@ ui <- dashboardPage(
         fluidRow(box(title = "Filtered table", width = 12, withSpinner(dataTableOutput("table"))))
       ),
       
-      # Placeholder for the future tabs
       tabItem(
         tabName = "go_term_enrichment_mitem",
-        h2("Go Term Enrichment"),
+        h2("GO Term Enrichment"),
+        
+        # Controls for enrichment analysis
+        fluidRow(
+          column(3, selectInput("ontology", "Ontology:", # Select GO
+                                choices = c("Biological Process" = "BP", 
+                                            "Molecular Function" = "MF", 
+                                            "Cellular Component" = "CC"), 
+                                selected = "BP")),
+          
+          column(4, 
+                 div(style = "display: flex; align-items: center;", 
+                     selectInput("p_adjust_method", "P-Adjust Method:", #Select adjust 
+                                 choices = c(
+                                             "Bonferroni" = "BH",
+                                             "False Discovery Rate (FDR)" = "fdr"
+                                             ), 
+                                 selected = "BH"),
+                     tags$span(icon("info-circle"), id = "p_adjust_info", 
+                               style = "cursor: pointer; margin-left: 5px;") 
+                 )
+          ),
+          
+          bsTooltip(id = "p_adjust_info", title = "P.value adjustement method, for more information click on the about tab", 
+                    placement = "right", trigger = "hover"), # Tooltip
+          
+          column(2, 
+                 tags$div(
+                   p(strong("Run computation : ")),
+                   actionButton("enrich_button", label = "Enrich", icon = icon("search")) #Enrich button
+                 )
+          )
+        ),
         
 
         tags$hr(),
         
-        # Add plot to display GO term enrichment results
+        # GO Term Enrichment Plot with slider on top
         fluidRow(
-          box(title = "GO Term Enrichment Results", width = 12, 
-              withSpinner(plotOutput(outputId = "go_plot")))
+          box(
+            title = "GO Term Enrichment Results", width = 12,
+            sliderInput("show_category", "Show Categories:", min = 5, max = 50, value = 20, step = 1),
+            withSpinner(plotOutput(outputId = "go_plot", height = 800))
+          )
         )
       ),
       tabItem(
