@@ -88,8 +88,15 @@ ui <- dashboardPage(
       tabItem(
         tabName = "go_term_enrichment_mitem",
         h2("Go Term Enrichment"),
-        tags$div(style = "text-align: center;", tags$img(src = "dodo.png", height = "100", alt = "dodo")),
-        p("#TODO")
+        
+
+        tags$hr(),
+        
+        # Add plot to display GO term enrichment results
+        fluidRow(
+          box(title = "GO Term Enrichment Results", width = 12, 
+              withSpinner(plotOutput(outputId = "go_plot")))
+        )
       ),
       tabItem(
         tabName = "pathway_enrichment_mitem",
