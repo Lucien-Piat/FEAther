@@ -118,7 +118,7 @@ server <- function(input, output, session) {
   # -----------------------------------------
   # Enrich
   # -----------------------------------------
-  
+  print("test")
   enriched_go <- reactive({
     df <- req(filtered_data())  # Get filtered data
     ensembl_ids <- df$ID        # Assuming "ID" column contains Ensembl Gene IDs
