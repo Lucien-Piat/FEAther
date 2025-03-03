@@ -18,9 +18,13 @@ source("functions.R")
 library("shinyjs")  
 library('clusterProfiler')
 library("org.Mm.eg.db") 
+library("org.Hs.eg.db")
+
+
 
 server <- function(input, output, session) {
   
+
   # -----------------------------------------
   # Data input (using fread)
   # -----------------------------------------
@@ -102,39 +106,44 @@ server <- function(input, output, session) {
   
   # Render the volcano plot using plotly
   output$volcano_plot <- renderPlotly({
-    volcano_plot()  # Simply call the reactive volcano plot
+    volcano_plot()
   })
   
-  # -----------------------------------------
   # Render the Table (using filtered data)
-  # -----------------------------------------
-  
   output$table <- DT::renderDataTable({
-    data <- filtered_data()
-    req(data)  # Ensure data is available
-    datatable(data)  # Render table without additional options
+    datatable(filtered_data(), options = list(pageLength = 10, scrollX = TRUE))
   })
   
   # -----------------------------------------
   # Enrich
   # -----------------------------------------
   
-  # Compute GO enrichment only when the "Enrich" button is clicked
+  # Define a reactive expression for selecting the correct organism database
+  OrgDb_selected <- reactive({
+    if (input$organism == "Homo sapiens") {
+      library("org.Hs.eg.db")  # Load Human database
+      return(org.Hs.eg.db)
+    } else {
+      library("org.Mm.eg.db")  # Load Mouse database
+      return(org.Mm.eg.db)
+    }
+  })
+  
   # Compute GO enrichment only when "Enrich" is clicked
   enriched_go <- eventReactive(input$enrich_button, {
-    df <- req(filtered_data())  # Get filtered data
-    ensembl_ids <- df$ID        # Assuming "ID" column contains Ensembl Gene IDs
+    df <- req(filtered_data())  
+    ensembl_ids <- df$ID
     
     # Convert Ensembl IDs to Entrez IDs
     id_mapping <- tryCatch(
       bitr(
-        ensembl_ids,
+        df$ID,
         fromType = "ENSEMBL",
         toType = "ENTREZID",
-        OrgDb = org.Mm.eg.db  # Use the correct OrgDb for Mus musculus
+        OrgDb = OrgDb_selected()
       ),
       error = function(e) {
-        show_shiny_error("GO enrichment failed", e)
+        show_shiny_error("GO enrichment failed", "Could not convert Ensembl IDs to Entrez IDs.")
         return(NULL)
       }
     )
@@ -153,18 +162,18 @@ server <- function(input, output, session) {
       return(NULL)
     }
     
-    # Perform GO enrichment analysis with user-selected options
+    # Perform GO enrichment analysis with user-selected organism
     ego <- tryCatch(
       enrichGO(
-        gene          = gene_list,
-        OrgDb         = org.Mm.eg.db,
+        gene          = unique(id_mapping$ENTREZID),
+        OrgDb         = OrgDb_selected(),
         keyType       = "ENTREZID",
-        ont           = input$ontology,  # Use selected ontology
-        pAdjustMethod = input$p_adjust_method,  # Use selected p-adjustment method
+        ont           = input$ontology,  # User-selected ontology (BP, MF, CC)
+        pAdjustMethod = input$p_adjust_method,  # User-selected p-adjustment method
         readable      = TRUE
       ),
       error = function(e) {
-        show_shiny_error("GO enrichment failed", e)
+        show_shiny_error("GO enrichment failed", "Enrichment analysis could not be performed.")
         return(NULL)
       }
     )
@@ -190,7 +199,6 @@ server <- function(input, output, session) {
         ggtitle(paste("GO Term Enrichment:", input$ontology)) + theme_minimal()
     }
   })
-  
 
   # -----------------------------------------
   # Download handler for filtered data
