@@ -133,16 +133,14 @@ server <- function(input, output, session) {
   })
   
   # Compute GO enrichment only when "Enrich" is clicked
-  ego_ora <- reactive({
-    req(input$enrich_button)
-    
+  ego_ora <- eventReactive(input$enrich_button, {
     df <- req(filtered_data())  
     ensembl_ids <- df$ID
     
     # Convert Ensembl IDs to Entrez IDs
     id_mapping <- tryCatch(
       bitr(
-        df$ID,
+        ensembl_ids,
         fromType = "ENSEMBL",
         toType = "ENTREZID",
         OrgDb = OrgDb_selected()
@@ -152,10 +150,20 @@ server <- function(input, output, session) {
     
     if (is.null(id_mapping) || nrow(id_mapping) == 0) return(NULL)
     
-    gene_list <- unique(id_mapping$ENTREZID)
+    # Merge mapped IDs with original data
+    df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
+    print(head(df))
+    # Apply user selection for over/under/both representation
+    if (input$representation_filter == "over") {
+      df <- df[df$log2FC > 0, ]
+    } else if (input$representation_filter == "under") {
+      df <- df[df$log2FC < 0, ]
+    } 
+    
+    gene_list <- unique(df$ENTREZID)
     if (length(gene_list) == 0) return(NULL)
     
-    # Perform GO enrichment analysis (ORA)
+    # Perform GO enrichment analysis
     ego <- tryCatch(
       enrichGO(
         gene          = gene_list,
@@ -169,43 +177,24 @@ server <- function(input, output, session) {
     )
     
     if (is.null(ego) || nrow(ego@result) == 0) return(NULL)
-    
     return(ego)
   })
   
+  
   # Enrichment plots using ORA result (we use a generic function from function.R)
   output$go_plot <- renderPlot({
-    render_enrich_plot(dotplot, ego_ora(), input$show_category, "GO Term Enrichment")
+    render_go_plot(dotplot, ego_ora(), input$show_category)
   })
   
   output$barplot <- renderPlot({
-    render_enrich_plot(barplot, ego_ora(), input$show_category, "Top GO Terms (ORA)")
+    render_go_plot(barplot, ego_ora(), input$show_category)
   })
   
-  output$heatplot <- renderPlot({
-    render_enrich_plot(heatplot, ego_ora(), input$show_category, "GO Term Heatmap")
+  output$treeplot <- renderPlot({
+    render_go_plot(enrichplot::treeplot, ego_ora(), input$show_category,  use_pairwise_sim = TRUE)
   })
   
-  output$upsetplot <- renderPlot({
-    render_enrich_plot(
-      enrichplot::upsetplot, ego_ora(), input$show_category, 
-      "UpSet Plot", ggplot2::theme(axis.text.y = ggplot2::element_text(size = 8))
-    )
-  })
-  
-  # Enrichment Map Plot (handling similarity calculation)
   output$emapplot <- renderPlot({
-    ego <- ego_ora()
-    req(ego)
-    
-    ego_sim <- enrichplot::pairwise_termsim(ego)
-    
-    if (is.null(ego_sim) || nrow(ego_sim@termsim) == 0) {
-      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
-      text(1, 1, "No term similarity available", col = "red", cex = 1.5)
-    } else {
-      enrichplot::emapplot(ego_sim, showCategory = input$show_category)
-    }
+    render_go_plot(enrichplot::emapplot, ego_ora(), input$show_category, use_pairwise_sim = TRUE)
   })
-
 }
