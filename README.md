@@ -34,7 +34,7 @@ FEAther/
 
 Click this link : https://lucien-piat.shinyapps.io/feather/
 
-### With Docker (recommended)
+### With Docker
 To run FEAther in a Docker container:
 
 From the root of the FEAther directory, build the Docker image:
