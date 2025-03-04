@@ -101,3 +101,36 @@ show_shiny_error <- function(title, message) {
     )
 }
 
+# Function to generate enrichment plots for GO analysis
+# 
+# @param plot_func The plotting function to use (e.g., dotplot, barplot, heatplot)
+# @param ego The result of GO enrichment analysis (ORA)
+# @param show_category Number of categories to display in the plot
+# @param title (Optional) Title of the plot
+# @param custom_theme (Optional) Custom ggplot2 theme to apply
+#
+# @details
+# This function checks if `ego` contains significant GO terms. If not, 
+# it displays a message indicating that no enrichment was found. Otherwise, 
+# it generates a plot using the specified `plot_func`
+render_enrich_plot <- function(plot_func, ego, show_category, title = NULL, custom_theme = NULL) {
+  if (is.null(ego) || nrow(ego@result) == 0) {
+    plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+    text(1, 1, "No significant GO terms found", col = "red", cex = 1.5)
+  } else {
+    p <- plot_func(ego, showCategory = show_category)
+    
+    if (!is.null(title)) {
+      p <- p + ggtitle(title)
+    }
+    
+    if (!is.null(custom_theme)) {
+      p <- p + custom_theme
+    } else {
+      p <- p + theme_minimal()
+    }
+    
+    print(p)  # Ensures the plot is rendered
+  }
+}
+
