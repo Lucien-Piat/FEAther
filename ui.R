@@ -9,8 +9,8 @@ library("shiny")
 library("shinycssloaders")
 library("shinyalert")
 library("shinydashboard")
-library("DT")
 library("dashboardthemes")
+library("DT")
 library("plotly")
 library("data.table")
 source("functions.R")
@@ -88,10 +88,11 @@ ui <- dashboardPage(
       tabItem(
         tabName = "go_term_enrichment_mitem",
         h2("GO Term Enrichment"),
-        
+        h3('Over-Representation Analysis (ORA)'),
         # Controls for enrichment analysis
         fluidRow(
-          column(3, selectInput("ontology", "Ontology:", # Select GO
+          
+          column(4, selectInput("ontology", "Ontology:", 
                                 choices = c("Biological Process" = "BP", 
                                             "Molecular Function" = "MF", 
                                             "Cellular Component" = "CC"), 
@@ -99,40 +100,46 @@ ui <- dashboardPage(
           
           column(4, 
                  div(style = "display: flex; align-items: center;", 
-                     selectInput("p_adjust_method", "P-Adjust Method:", #Select adjust 
-                                 choices = c(
-                                             "Bonferroni" = "BH",
-                                             "False Discovery Rate (FDR)" = "fdr"
-                                             ), 
+                     selectInput("p_adjust_method", "P-Adjust Method:", 
+                                 choices = c("Bonferroni" = "BH",
+                                             "False Discovery Rate (FDR)" = "fdr"), 
                                  selected = "BH"),
                      tags$span(icon("info-circle"), id = "p_adjust_info", 
                                style = "cursor: pointer; margin-left: 5px;") 
                  )
           ),
           
-          bsTooltip(id = "p_adjust_info", title = "P.value adjustement method, for more information click on the about tab", 
-                    placement = "right", trigger = "hover"), # Tooltip
+          bsTooltip(id = "p_adjust_info", title = "P.value adjustment method, for more information click on the about tab", 
+                    placement = "right", trigger = "hover"),
           
-          column(2, 
+          column(4, 
                  tags$div(
-                   p(strong("Run computation : ")),
-                   actionButton("enrich_button", label = "Enrich", icon = icon("search")) #Enrich button
+                   p(strong("Run computation:")),
+                   actionButton("enrich_button", label = "Enrich", icon = icon("search"))
                  )
           )
         ),
         
-
         tags$hr(),
         
-        # GO Term Enrichment Plot with slider on top
+        # Slider for controlling the number of GO terms shown
         fluidRow(
-          box(
-            title = "GO Term Enrichment Results", width = 12,
-            sliderInput("show_category", "Show Categories:", min = 5, max = 50, value = 20, step = 1),
-            withSpinner(plotOutput(outputId = "go_plot", height = 800))
-          )
+          column(7, 
+                 sliderInput("show_category", 
+                             label = "Number of Terms to Display:", 
+                             min = 5, max = 50, value = 15, step = 1))
+        ),
+        
+        # Plots: Tabs for different ORA visualizations
+        tabsetPanel(
+          tabPanel("Dot Plot", withSpinner(plotOutput(outputId = "go_plot", height = 600))),
+          tabPanel("Bar Plot", withSpinner(plotOutput(outputId = "barplot", height = 600))),
+          tabPanel("Enrichment Map", withSpinner(plotOutput(outputId = "emapplot", height = 600))),
+          tabPanel("Heatmap", withSpinner(plotOutput(outputId = "heatplot", height = 600))),
+          tabPanel("Upset Plot", withSpinner(plotOutput(outputId = "upsetplot", height = 600)))
         )
-      ),
+      ), 
+      
       tabItem(
         tabName = "pathway_enrichment_mitem",
         h2("Pathway Enrichment"),
