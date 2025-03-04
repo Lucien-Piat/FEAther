@@ -3,4 +3,8 @@
 .RData
 .Ruserdata
 .idea
+.idea/*
 .gitignore
+.idea/
+*.Rproj
+*.Rproj.user
