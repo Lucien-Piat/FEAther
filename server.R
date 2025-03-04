@@ -10,17 +10,19 @@ library("shiny")
 library("shinycssloaders")
 library("shinyalert")
 library("shinydashboard")
-library("DT")
 library("dashboardthemes")
 library("plotly")
+library("DT")
 library("data.table")
 source("functions.R")
 library("shinyjs")  
 library('clusterProfiler')
 library("org.Mm.eg.db") 
+library("org.Hs.eg.db")
 
 server <- function(input, output, session) {
   
+
   # -----------------------------------------
   # Data input (using fread)
   # -----------------------------------------
@@ -48,49 +50,43 @@ server <- function(input, output, session) {
       }
     )
     req(nrow(df) > 0) # Ensure the data frame is not empty
-    df # Return the dataframe
+    df
   })
   
   
   # -----------------------------------------
   # Filtered data 
   # -----------------------------------------
-  
   filtered_data <- reactive({
     df <- req(data())  # Ensure data is available
     
     # Filter data based on slider inputs (log2FC and p-value)
     filtered_df <- df %>% dplyr::filter(abs(log2FC) >= input$log2FC_slider, pval <= input$p_val_slider)
     
-    # Check if plotly zoom/pan event data is available
+    # Filter again based on the plotly Zoom
     plotly_event <- event_data("plotly_relayout", priority = "event")
-    
     if (!is.null(plotly_event) && length(plotly_event) > 0) {
-      # Ensure plotly_event contains valid ranges for x and y axes
       x_range_valid <- !is.null(plotly_event$`xaxis.range[0]`) && !is.null(plotly_event$`xaxis.range[1]`)
       y_range_valid <- !is.null(plotly_event$`yaxis.range[0]`) && !is.null(plotly_event$`yaxis.range[1]`)
-      
       if (x_range_valid && y_range_valid) {
-        # Apply zoom/pan filter based on plotly event data (x-axis and y-axis ranges)
         filtered_df <- filtered_df %>%
           dplyr::filter(log2FC >= plotly_event$`xaxis.range[0]` & log2FC <= plotly_event$`xaxis.range[1]` & 
                           -log10(pval) >= plotly_event$`yaxis.range[0]` & -log10(pval) <= plotly_event$`yaxis.range[1]`)
       }
     }
-    filtered_df  # Return the final filtered data
+    filtered_df 
   })
   
   # -----------------------------------------
-  # Volcano plot (created once with full data)
+  # Volcano plot and table
   # -----------------------------------------
   volcano_plot <- reactive({
-    df <- req(data())  # Full dataset for plotting
+    df <- req(data()) # Take full data set
     
     # Create a color column based on the filtering conditions (for coloring only)
     df$color <- ifelse(df$pval <= input$p_val_slider & abs(df$log2FC) >= input$log2FC_slider, 
                        ifelse(df$log2FC > 0, "green", "red"), "grey")
     
-    # Create the volcano plot using plotly
     plot_ly(df, x = ~log2FC, y = -log10(df$pval), type = 'scatter', mode = 'markers',
             text = ~GeneName, hoverinfo = 'text', 
             marker = list(color = ~color, size = 3)) %>%
@@ -102,97 +98,15 @@ server <- function(input, output, session) {
   
   # Render the volcano plot using plotly
   output$volcano_plot <- renderPlotly({
-    volcano_plot()  # Simply call the reactive volcano plot
+    volcano_plot()
   })
   
-  # -----------------------------------------
   # Render the Table (using filtered data)
-  # -----------------------------------------
-  
   output$table <- DT::renderDataTable({
-    data <- filtered_data()
-    req(data)  # Ensure data is available
-    datatable(data)  # Render table without additional options
+    datatable(filtered_data(), options = list(pageLength = 10, scrollX = TRUE))
   })
   
-  # -----------------------------------------
-  # Enrich
-  # -----------------------------------------
-  
-  enriched_go <- reactive({
-    df <- req(filtered_data())  # Get filtered data
-    ensembl_ids <- df$ID        # Assuming "ID" column contains Ensembl Gene IDs
-    
-    # Convert Ensembl IDs to Entrez IDs
-    id_mapping <- tryCatch(
-      bitr(
-        ensembl_ids,
-        fromType = "ENSEMBL",
-        toType = "ENTREZID",
-        OrgDb = org.Mm.eg.db  # Use the correct OrgDb for Mus musculus
-      ),
-      error = function(e) {
-        showNotification("Error in ID conversion. Please check your Ensembl IDs.", type = "error")
-        return(NULL)
-      }
-    )
-    
-    if (is.null(id_mapping) || nrow(id_mapping) == 0) {
-      showNotification("No valid ID mappings found.", type = "error")
-      return(NULL)
-    }
-    
-    # Merge to retain only mapped genes
-    mapped_df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL", all.x = FALSE)
-    
-    gene_list <- unique(mapped_df$ENTREZID)
-    if (length(gene_list) == 0) {
-      showNotification("No valid Entrez IDs for enrichment analysis.", type = "error")
-      return(NULL)
-    }
-    
-    # Perform GO enrichment analysis
-    ego <- tryCatch(
-      enrichGO(
-        gene          = gene_list,
-        OrgDb         = org.Mm.eg.db,
-        keyType       = "ENTREZID",
-        ont           = "BP",         # Ontology: Biological Process
-        pAdjustMethod = "BH",
-        pvalueCutoff  = 0.05
-      ),
-      error = function(e) {
-        showNotification("GO enrichment analysis failed.", type = "error")
-        return(NULL)
-      }
-    )
-    
-    if (is.null(ego) || nrow(ego@result) == 0) {
-      showNotification("No significant GO terms found.", type = "warning")
-      return(NULL)
-    }
-    return(ego)
-  })
-
-  # Render GO enrichment plot
-  output$go_plot <- renderPlot({
-    ego <- enriched_go()
-    req(ego)  # Ensure enrichment results exist
-    
-    if (nrow(ego@result) == 0) {
-      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
-      text(1, 1, "No significant GO terms found", col = "red", cex = 1.5)
-    } else {
-      dotplot(ego, showCategory = 10) +
-        ggtitle("GO Term Enrichment: Biological Process")
-    }
-  })
-  
-
-  # -----------------------------------------
-  # Download handler for filtered data
-  # -----------------------------------------
-  
+  # Allow user to download the table
   output$download <- downloadHandler(
     filename = function() {
       paste("filtered_data_", Sys.Date(), ".csv", sep = "")
@@ -202,4 +116,96 @@ server <- function(input, output, session) {
       write.csv(df, file, row.names = FALSE)  # Download CSV
     }
   )
+  
+  # -----------------------------------------
+  # ORA
+  # -----------------------------------------
+  
+  # Define a reactive expression for selecting the correct organism database
+  OrgDb_selected <- reactive({
+    if (input$organism == "Homo sapiens") {
+      library("org.Hs.eg.db")  # Load Human database
+      return(org.Hs.eg.db)
+    } else {
+      library("org.Mm.eg.db")  # Load Mouse database
+      return(org.Mm.eg.db)
+    }
+  })
+  
+  # Compute GO enrichment only when "Enrich" is clicked
+  ego_ora <- reactive({
+    req(input$enrich_button)
+    
+    df <- req(filtered_data())  
+    ensembl_ids <- df$ID
+    
+    # Convert Ensembl IDs to Entrez IDs
+    id_mapping <- tryCatch(
+      bitr(
+        df$ID,
+        fromType = "ENSEMBL",
+        toType = "ENTREZID",
+        OrgDb = OrgDb_selected()
+      ),
+      error = function(e) return(NULL)
+    )
+    
+    if (is.null(id_mapping) || nrow(id_mapping) == 0) return(NULL)
+    
+    gene_list <- unique(id_mapping$ENTREZID)
+    if (length(gene_list) == 0) return(NULL)
+    
+    # Perform GO enrichment analysis (ORA)
+    ego <- tryCatch(
+      enrichGO(
+        gene          = gene_list,
+        OrgDb         = OrgDb_selected(),
+        keyType       = "ENTREZID",
+        ont           = input$ontology,
+        pAdjustMethod = input$p_adjust_method,
+        readable      = TRUE
+      ),
+      error = function(e) return(NULL)
+    )
+    
+    if (is.null(ego) || nrow(ego@result) == 0) return(NULL)
+    
+    return(ego)
+  })
+  
+  # Enrichment plots using ORA result (we use a generic function from function.R)
+  output$go_plot <- renderPlot({
+    render_enrich_plot(dotplot, ego_ora(), input$show_category, "GO Term Enrichment")
+  })
+  
+  output$barplot <- renderPlot({
+    render_enrich_plot(barplot, ego_ora(), input$show_category, "Top GO Terms (ORA)")
+  })
+  
+  output$heatplot <- renderPlot({
+    render_enrich_plot(heatplot, ego_ora(), input$show_category, "GO Term Heatmap")
+  })
+  
+  output$upsetplot <- renderPlot({
+    render_enrich_plot(
+      enrichplot::upsetplot, ego_ora(), input$show_category, 
+      "UpSet Plot", ggplot2::theme(axis.text.y = ggplot2::element_text(size = 8))
+    )
+  })
+  
+  # Enrichment Map Plot (handling similarity calculation)
+  output$emapplot <- renderPlot({
+    ego <- ego_ora()
+    req(ego)
+    
+    ego_sim <- enrichplot::pairwise_termsim(ego)
+    
+    if (is.null(ego_sim) || nrow(ego_sim@termsim) == 0) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "No term similarity available", col = "red", cex = 1.5)
+    } else {
+      enrichplot::emapplot(ego_sim, showCategory = input$show_category)
+    }
+  })
+
 }
