@@ -92,13 +92,14 @@ ui <- dashboardPage(
         # Controls for enrichment analysis
         fluidRow(
           
-          column(4, selectInput("ontology", "Ontology:", 
+          column(3, selectInput("ontology", "Ontology:", 
                                 choices = c("Biological Process" = "BP", 
                                             "Molecular Function" = "MF", 
-                                            "Cellular Component" = "CC"), 
+                                            "Cellular Component" = "CC",
+                                            "All" = "ALL"), 
                                 selected = "BP")),
           
-          column(4, 
+          column(3, 
                  div(style = "display: flex; align-items: center;", 
                      selectInput("p_adjust_method", "P-Adjust Method:", 
                                  choices = c("Bonferroni" = "BH",
@@ -112,21 +113,35 @@ ui <- dashboardPage(
           bsTooltip(id = "p_adjust_info", title = "P.value adjustment method, for more information click on the about tab", 
                     placement = "right", trigger = "hover"),
           
-          column(4, 
+          column(2, 
+                 radioButtons("representation_filter", "Select Representation Type:", 
+                              choices = c(
+                                "⬆️ Over-represented" = "over", 
+                                "⬇️ Under-represented" = "under", 
+                                "🔀 Both" = "both"
+                              ), 
+                              selected = "both", 
+                              inline = FALSE)  # Ensure vertical stacking
+          ), 
+          column(2, 
                  tags$div(
-                   p(strong("Run computation:")),
-                   actionButton("enrich_button", label = "Enrich", icon = icon("search"))
+                   style = "background-color: rgb(64,147,83); padding: 15px; border-radius: 30px; text-align: center; color: white;",
+                   actionButton("enrich_button", 
+                                label = " Start ORA", 
+                                icon = icon("rocket"),   # Changed icon from "search" to "rocket"
+                                style = "background-color:rgb(209,219,39); color: black; 
+                               border-radius: 30px; padding: 10px; font-size: 15px;")
                  )
           )
+          
         ),
-        
         tags$hr(),
         
         # Slider for controlling the number of GO terms shown
         fluidRow(
           column(7, 
                  sliderInput("show_category", 
-                             label = "Number of Terms to Display:", 
+                             label = "Number of Terms to Plot:", 
                              min = 5, max = 50, value = 15, step = 1))
         ),
         
@@ -134,9 +149,8 @@ ui <- dashboardPage(
         tabsetPanel(
           tabPanel("Dot Plot", withSpinner(plotOutput(outputId = "go_plot", height = 600))),
           tabPanel("Bar Plot", withSpinner(plotOutput(outputId = "barplot", height = 600))),
-          tabPanel("Enrichment Map", withSpinner(plotOutput(outputId = "emapplot", height = 600))),
-          tabPanel("Heatmap", withSpinner(plotOutput(outputId = "heatplot", height = 600))),
-          tabPanel("Upset Plot", withSpinner(plotOutput(outputId = "upsetplot", height = 600)))
+          tabPanel("Net Plot", withSpinner(plotOutput(outputId = "emapplot", height = 600))),
+          tabPanel("Tree Plot", withSpinner(plotOutput(outputId = "treeplot", height = 600)))
         )
       ), 
       
