@@ -158,6 +158,10 @@ ui <- dashboardPage(
           tabPanel("Bar Plot", withSpinner(plotOutput(outputId = "barplot", height = 600))),
           tabPanel("Net Plot", withSpinner(plotOutput(outputId = "emapplot", height = 600))),
           tabPanel("Tree Plot", withSpinner(plotOutput(outputId = "treeplot", height = 600)))
+        ),
+        fluidRow(
+          box(title = "GO Enrichment Results Table", width = 12,
+              DTOutput("ego_table") %>% withSpinner())
         )
       ), 
       
