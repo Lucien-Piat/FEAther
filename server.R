@@ -194,4 +194,10 @@ server <- function(input, output, session) {
   output$emapplot <- renderPlot({
     render_go_plot(enrichplot::emapplot, ego_ora(), input$show_category, use_pairwise_sim = TRUE)
   })
+  
+  output$ego_table <- DT::renderDataTable({
+    req(ego_ora())  # S’assure que ego n’est pas NULL
+    df <- as.data.frame(ego_ora()@result) %>% dplyr::select(Description, GeneRatio, BgRatio, p.adjust, Count) 
+    datatable(df, options = list(pageLength = 10, scrollX = TRUE))
+  })
 }
