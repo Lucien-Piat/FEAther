@@ -10,6 +10,8 @@
 # Graphic functions
 # -----------------------------------------
 
+`%||%` <- function(a, b) if (!is.null(a)) a else b
+
 # Function to create a custom header with an image
 custom_dashboard_header <- function() {
     dashboardHeader(
@@ -114,7 +116,6 @@ show_shiny_error <- function(title, message) {
 # If not, it displays a message indicating that no enrichment was found.
 # If `use_pairwise_sim = TRUE`, it computes term similarity before plotting.
 # Otherwise, it directly generates the plot using `plot_func`.
-
 render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = NULL, use_pairwise_sim = FALSE) {
   # Check if the enrichment object exists and contains results
   if (is.null(ego) || nrow(ego@result) == 0) {
@@ -133,11 +134,15 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
     }
   }
   
+  # Adjust show_category to avoid exceeding available terms
+  n_terms <- nrow(ego@result)
+  adjusted_category <- if (!is.null(show_category)) min(show_category, n_terms) else NULL
+  
   # Generate the plot
-  p <- if (!is.null(show_category)) {
-    plot_func(ego, showCategory = show_category)
+  p <- if (!is.null(adjusted_category)) {
+    plot_func(ego, showCategory = adjusted_category)
   } else {
-    plot_func(ego)  # Some plots do not require showCategory
+    plot_func(ego)
   }
   
   # Apply custom theme or default minimal theme
@@ -146,5 +151,6 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
   # Ensure plot is rendered
   print(p)
 }
+
 
   
