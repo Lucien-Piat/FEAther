@@ -80,6 +80,14 @@ server <- function(input, output, session) {
   # -----------------------------------------
   # Volcano plot and table
   # -----------------------------------------
+  OrgDb_selected <- reactive({
+    if (input$organism == "Homo sapiens") {
+      org.Hs.eg.db
+    } else {
+      org.Mm.eg.db
+    }
+  })
+  
   volcano_plot <- reactive({
     df <- req(data()) # Take full data set
     
@@ -120,17 +128,6 @@ server <- function(input, output, session) {
   # -----------------------------------------
   # ORA
   # -----------------------------------------
-  
-  # Define a reactive expression for selecting the correct organism database
-  OrgDb_selected <- reactive({
-    if (input$organism == "Homo sapiens") {
-      library("org.Hs.eg.db")  # Load Human database
-      return(org.Hs.eg.db)
-    } else {
-      library("org.Mm.eg.db")  # Load Mouse database
-      return(org.Mm.eg.db)
-    }
-  })
   
   # Compute GO enrichment only when "Enrich" is clicked
   ego_ora <- eventReactive(input$enrich_button, {
