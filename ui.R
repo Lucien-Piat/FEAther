@@ -93,7 +93,7 @@ ui <- dashboardPage(
         # Controls for enrichment analysis
         fluidRow(
           
-          column(3, selectInput("ontology", "Ontology:", 
+          column(2, selectInput("ontology", "Ontology:", 
                                 choices = c("Biological Process" = "BP", 
                                             "Molecular Function" = "MF", 
                                             "Cellular Component" = "CC",
@@ -114,7 +114,7 @@ ui <- dashboardPage(
           bsTooltip(id = "p_adjust_info", title = "P.value adjustment method, for more information click on the about tab", 
                     placement = "right", trigger = "hover"),
           
-          column(2, 
+          column(3, 
                  radioButtons("representation_filter", "Select Representation Type:", 
                               choices = c(
                                 "⬆️ Over-represented" = "over", 
@@ -124,16 +124,22 @@ ui <- dashboardPage(
                               selected = "both", 
                               inline = FALSE)  # Ensure vertical stacking
           ), 
-          column(2, 
+          column(4, 
                  tags$div(
-                   style = "background-color: rgb(64,147,83); padding: 15px; border-radius: 30px; text-align: center; color: white;",
+                   style = "background-color: rgb(64,147,83); padding: 3px; border-radius: 30px; text-align: center; color: white; 
+             display: inline-block; border: 8px solid rgb(64,147,83); box-sizing: border-box;",
                    actionButton("enrich_button", 
                                 label = " Start ORA", 
-                                icon = icon("rocket"),   # Changed icon from "search" to "rocket"
+                                icon = icon("rocket"),   
                                 style = "background-color:rgb(209,219,39); color: black; 
-                               border-radius: 30px; padding: 10px; font-size: 15px;")
+               border: none; border-radius: 30px; padding: 10px 30px; font-size: 15px; 
+               display: inline-block; width: auto; box-sizing: border-box; text-align: center;")
                  )
           )
+          
+          
+          
+          
           
         ),
         tags$hr(),
