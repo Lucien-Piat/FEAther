@@ -130,7 +130,7 @@ server <- function(input, output, session) {
   })
   
   # Compute GO enrichment only when "Enrich" is clicked
-  ego_ora <- eventReactive(input$ora_enrich_button, {
+  ora_results <- eventReactive(input$ora_enrich_button, {
     df <- req(filtered_data())  
     ensembl_ids <- df$ID
     
@@ -180,25 +180,25 @@ server <- function(input, output, session) {
   
   # Render enrichment plots for ORA results
   output$go_plot <- renderPlot({
-    render_go_plot(dotplot, ego_ora(), input$show_category)
+    render_go_plot(dotplot, ora_results(), input$show_category)
   })
   
   output$barplot <- renderPlot({
-    render_go_plot(barplot, ego_ora(), input$show_category)
+    render_go_plot(barplot, ora_results(), input$show_category)
   })
   
   output$treeplot <- renderPlot({
-    render_go_plot(enrichplot::treeplot, ego_ora(), input$show_category,  use_pairwise_sim = TRUE)
+    render_go_plot(enrichplot::treeplot, ora_results(), input$show_category,  use_pairwise_sim = TRUE)
   })
   
   output$emapplot <- renderPlot({
-    render_go_plot(enrichplot::emapplot, ego_ora(), input$show_category, use_pairwise_sim = TRUE)
+    render_go_plot(enrichplot::emapplot, ora_results(), input$show_category, use_pairwise_sim = TRUE)
   })
   
   # Render ORA results table with selectable columns
   output$ego_table <- DT::renderDataTable({
-    req(ego_ora())
-    df <- as.data.frame(ego_ora()@result)
+    req(ora_results())
+    df <- as.data.frame(ora_results()@result)
     selected_cols <- switch(input$ora_table_mode,
                             "detailed" = c("Description", "GeneRatio", "BgRatio", "p.adjust", "pvalue"),
                             "genes"    = c("Description", "GeneRatio", "geneID" )
@@ -214,14 +214,69 @@ server <- function(input, output, session) {
     )
   })
   
-  # Dummy placeholder for GSEA results
-  output$gsea_table <- DT::renderDataTable({
-    df <- data.frame(
-      Term = c("Term A", "Term B"),
-      NES = c(2.3, -1.8),
-      p.adjust = c(0.01, 0.05),
-      Genes = c("Gene1/Gene2/Gene3", "Gene4/Gene5")
+  gsea_result <- eventReactive(input$gsea_enrich_button, {
+    df <- req(data())  # Use full dataset for GSEA
+    
+    # Convert Ensembl IDs to Entrez IDs
+    id_mapping <- tryCatch(
+      bitr(
+        df$ID,
+        fromType = "ENSEMBL",
+        toType = "ENTREZID",
+        OrgDb = OrgDb_selected()
+      ),
+      error = function(e) return(NULL)
     )
-    datatable(df, options = list(pageLength = 5, scrollX = TRUE))
+    
+    if (is.null(id_mapping) || nrow(id_mapping) == 0) return(NULL)
+    
+    # Merge IDs
+    df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
+    
+    # Create a ranked named vector (EntrezID as names, log2FC as values)
+    gene_list <- df$log2FC
+    names(gene_list) <- df$ENTREZID
+    gene_list <- sort(gene_list, decreasing = TRUE)  # Required for GSEA
+    
+    # Remove duplicates (GSEA requires unique gene IDs)
+    gene_list <- gene_list[!duplicated(names(gene_list))]
+    
+    # Run GSEA
+    gsea <- tryCatch(
+      gseGO(
+        geneList     = gene_list,
+        OrgDb        = OrgDb_selected(),
+        keyType      = "ENTREZID",
+        ont          = input$gsea_ontology,
+        pAdjustMethod= input$gsea_p_adjust_method,
+        verbose      = FALSE
+      ),
+      error = function(e) return(NULL)
+    )
+    
+    if (is.null(gsea) || nrow(gsea@result) == 0) return(NULL)
+    return(gsea)
+  })
+
+  
+  output$gsea_table <- DT::renderDataTable({
+    gsea <- gsea_result()
+    req(gsea)
+    
+    df <- as.data.frame(gsea@result)
+    
+    # Select useful columns to display
+    selected_cols <- c("Description","enrichmentScore", "NES", "pvalue", "p.adjust")
+    
+    datatable(
+      df[, selected_cols, drop = FALSE],
+      extensions = 'Buttons',
+      options = list(
+        pageLength = 10,
+        scrollX = TRUE,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'pdf')
+      )
+    )
   })
 }
