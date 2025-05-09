@@ -66,7 +66,6 @@ resultsTableUI <- function(title, output_id, include_mode_switch = FALSE, mode_i
   )
 }
 
-#Function for ORA + GSEA controls
 enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = NULL) {
   tooltip_id <- tooltip_id %||% paste0(prefix, "_p_adjust_info")
   
@@ -91,11 +90,13 @@ enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = N
               title = "P.value adjustment method, for more information click on the about tab",
               placement = "right", trigger = "hover"),
     
-    column(3, radioButtons(paste0(prefix, "_representation_filter"), "Select Representation Type:",
-                           choices = c("⬆️ Over-represented" = "over",
-                                       "⬇️ Under-represented" = "under",
-                                       "🔀 Both" = "both"),
-                           selected = "both", inline = FALSE)),
+    if (prefix != "gsea") {
+      column(3, radioButtons(paste0(prefix, "_representation_filter"), "Select Representation Type:",
+                             choices = c("⬆️ Over-represented" = "over",
+                                         "⬇️ Under-represented" = "under",
+                                         "🔀 Both" = "both"),
+                             selected = "both", inline = FALSE))
+    },
     
     column(4, tags$div(
       style = "background-color: rgb(64,147,83); padding: 3px; border-radius: 30px; text-align: center; color: white;
@@ -106,6 +107,7 @@ enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = N
     ))
   )
 }
+
 
 # Function to create the about tab with useful infos
 aboutTab <- function() {
