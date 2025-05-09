@@ -2,8 +2,7 @@
 # Project: FEA-ther (Functional Enrichment Analysis Tool)
 # Author: Maël Louis, Antoine Malet and Lucien Piat 
 # Affiliation: Rouen Normandie University
-# Creation: 04/10/2024
-# Last update: 18/11/2024
+# Creation: 04/10/2024 | Last update: 09/05/2025
 # -----------------------------------------
 
 library("shiny")
@@ -22,7 +21,6 @@ library("org.Hs.eg.db")
 
 server <- function(input, output, session) {
   
-
   # -----------------------------------------
   # Data input (using fread)
   # -----------------------------------------
@@ -55,7 +53,7 @@ server <- function(input, output, session) {
   
   
   # -----------------------------------------
-  # Filtered data 
+  # Filtered data (based on user inputs and plot zoom)
   # -----------------------------------------
   filtered_data <- reactive({
     df <- req(data())  # Ensure data is available
@@ -78,15 +76,8 @@ server <- function(input, output, session) {
   })
   
   # -----------------------------------------
-  # Volcano plot and table
+  # Volcano plot creation and rendering
   # -----------------------------------------
-  OrgDb_selected <- reactive({
-    if (input$organism == "Homo sapiens") {
-      org.Hs.eg.db
-    } else {
-      org.Mm.eg.db
-    }
-  })
   
   volcano_plot <- reactive({
     df <- req(data()) # Take full data set
@@ -95,6 +86,7 @@ server <- function(input, output, session) {
     df$color <- ifelse(df$pval <= input$p_val_slider & abs(df$log2FC) >= input$log2FC_slider, 
                        ifelse(df$log2FC > 0, "green", "red"), "grey")
     
+    # Generate the volcano plot
     plot_ly(df, x = ~log2FC, y = -log10(df$pval), type = 'scatter', mode = 'markers',
             text = ~GeneName, hoverinfo = 'text', 
             marker = list(color = ~color, size = 3)) %>%
@@ -114,7 +106,7 @@ server <- function(input, output, session) {
     datatable(filtered_data(), options = list(pageLength = 10, scrollX = TRUE))
   })
   
-  # Allow user to download the table
+  # Allow user to download the filtered data table as CSV
   output$download <- downloadHandler(
     filename = function() {
       paste("filtered_data_", Sys.Date(), ".csv", sep = "")
@@ -126,15 +118,23 @@ server <- function(input, output, session) {
   )
   
   # -----------------------------------------
-  # ORA
+  # Over-Representation Analysis (ORA)
   # -----------------------------------------
   
+  OrgDb_selected <- reactive({
+    if (input$organism == "Homo sapiens") {
+      org.Hs.eg.db
+    } else {
+      org.Mm.eg.db
+    }
+  })
+  
   # Compute GO enrichment only when "Enrich" is clicked
-  ego_ora <- eventReactive(input$enrich_button, {
+  ego_ora <- eventReactive(input$ora_enrich_button, {
     df <- req(filtered_data())  
     ensembl_ids <- df$ID
     
-    # Convert Ensembl IDs to Entrez IDs
+    # Convert Ensembl IDs to Entrez IDs using clusterProfiler
     id_mapping <- tryCatch(
       bitr(
         ensembl_ids,
@@ -149,14 +149,15 @@ server <- function(input, output, session) {
     
     # Merge mapped IDs with original data
     df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
-    print(head(df))
+    
     # Apply user selection for over/under/both representation
-    if (input$representation_filter == "over") {
+    if (input$ora_representation_filter == "over") {
       df <- df[df$log2FC > 0, ]
-    } else if (input$representation_filter == "under") {
+    } else if (input$ora_representation_filter == "under") {
       df <- df[df$log2FC < 0, ]
     } 
     
+    # Extract unique Entrez IDs for enrichment analysis
     gene_list <- unique(df$ENTREZID)
     if (length(gene_list) == 0) return(NULL)
     
@@ -166,8 +167,8 @@ server <- function(input, output, session) {
         gene          = gene_list,
         OrgDb         = OrgDb_selected(),
         keyType       = "ENTREZID",
-        ont           = input$ontology,
-        pAdjustMethod = input$p_adjust_method,
+        ont           = input$ora_ontology,
+        pAdjustMethod = input$ora_p_adjust_method,
         readable      = TRUE
       ),
       error = function(e) return(NULL)
@@ -177,8 +178,7 @@ server <- function(input, output, session) {
     return(ego)
   })
   
-  
-  # Enrichment plots using ORA result (we use a generic function from function.R)
+  # Render enrichment plots for ORA results
   output$go_plot <- renderPlot({
     render_go_plot(dotplot, ego_ora(), input$show_category)
   })
@@ -195,9 +195,33 @@ server <- function(input, output, session) {
     render_go_plot(enrichplot::emapplot, ego_ora(), input$show_category, use_pairwise_sim = TRUE)
   })
   
+  # Render ORA results table with selectable columns
   output$ego_table <- DT::renderDataTable({
-    req(ego_ora())  # S’assure que ego n’est pas NULL
-    df <- as.data.frame(ego_ora()@result) %>% dplyr::select(Description, GeneRatio, BgRatio, p.adjust, Count) 
-    datatable(df, options = list(pageLength = 10, scrollX = TRUE))
+    req(ego_ora())
+    df <- as.data.frame(ego_ora()@result)
+    selected_cols <- switch(input$ora_table_mode,
+                            "detailed" = c("Description", "GeneRatio", "BgRatio", "p.adjust", "pvalue"),
+                            "genes"    = c("Description", "GeneRatio", "geneID" )
+    )
+    datatable(
+      df[, selected_cols, drop = FALSE], extensions = 'Buttons',
+      options = list(
+        pageLength = 10,
+        scrollX = TRUE,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'pdf')
+      )
+    )
+  })
+  
+  # Dummy placeholder for GSEA results
+  output$gsea_table <- DT::renderDataTable({
+    df <- data.frame(
+      Term = c("Term A", "Term B"),
+      NES = c(2.3, -1.8),
+      p.adjust = c(0.01, 0.05),
+      Genes = c("Gene1/Gene2/Gene3", "Gene4/Gene5")
+    )
+    datatable(df, options = list(pageLength = 5, scrollX = TRUE))
   })
 }
