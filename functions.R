@@ -10,8 +10,6 @@
 # UI functions
 # -----------------------------------------
 
-`%||%` <- function(a, b) if (!is.null(a)) a else b
-
 # Function to create a custom header with an image
 custom_dashboard_header <- function() {
     dashboardHeader(
@@ -164,6 +162,9 @@ aboutTab <- function() {
 # -----------------------------------------
 # Server functions
 # -----------------------------------------
+
+# Create custom operator 
+`%||%` <- function(a, b) if (!is.null(a)) a else b
 
 # Function to trigger shinyalert error with a custom message
 # @title Title of the popup
