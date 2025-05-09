@@ -7,7 +7,7 @@
 # -----------------------------------------
 
 # -----------------------------------------
-# Graphic functions
+# UI functions
 # -----------------------------------------
 
 `%||%` <- function(a, b) if (!is.null(a)) a else b
@@ -36,6 +36,77 @@ custom_home <- function() {
             tags$img(src = "item.png", height = "30px", style = "margin-left: 0px;")
         )
     )
+}
+
+# Function for the UI Ora plots
+oraPlotsUI <- function() {
+  tabsetPanel(
+    tabPanel("Dot Plot", withSpinner(plotOutput("go_plot", height = 600))),
+    tabPanel("Bar Plot", withSpinner(plotOutput("barplot", height = 600))),
+    tabPanel("Net Plot", withSpinner(plotOutput("emapplot", height = 600))),
+    tabPanel("Tree Plot", withSpinner(plotOutput("treeplot", height = 600)))
+  )
+}
+
+#Function to display a table ORA + GSEA
+resultsTableUI <- function(title, output_id, include_mode_switch = FALSE, mode_input_id = NULL) {
+  fluidRow(
+    box(
+      title = title,
+      width = 12,
+      if (include_mode_switch) {
+        radioButtons(
+          inputId = mode_input_id,
+          label = "Display Mode:",
+          choices = c("Show stats" = "detailed", "Show genes" = "genes"),
+          selected = "detailed",
+          inline = TRUE
+        )
+      },
+      DTOutput(output_id) %>% withSpinner()
+    )
+  )
+}
+
+#Function for ORA + GSEA controls
+enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = NULL) {
+  tooltip_id <- tooltip_id %||% paste0(prefix, "_p_adjust_info")
+  
+  fluidRow(
+    column(2, selectInput(paste0(prefix, "_ontology"), "Ontology:",
+                          choices = c("Biological Process" = "BP",
+                                      "Molecular Function" = "MF",
+                                      "Cellular Component" = "CC",
+                                      "All" = "ALL"),
+                          selected = "BP")),
+    
+    column(3, div(style = "display: flex; align-items: center;",
+                  selectInput(paste0(prefix, "_p_adjust_method"), "P-Adjust Method:",
+                              choices = c("Bonferroni" = "BH",
+                                          "False Discovery Rate (FDR)" = "fdr"),
+                              selected = "BH"),
+                  tags$span(icon("info-circle"), id = tooltip_id,
+                            style = "cursor: pointer; margin-left: 5px;")
+    )),
+    
+    bsTooltip(id = tooltip_id,
+              title = "P.value adjustment method, for more information click on the about tab",
+              placement = "right", trigger = "hover"),
+    
+    column(3, radioButtons(paste0(prefix, "_representation_filter"), "Select Representation Type:",
+                           choices = c("⬆️ Over-represented" = "over",
+                                       "⬇️ Under-represented" = "under",
+                                       "🔀 Both" = "both"),
+                           selected = "both", inline = FALSE)),
+    
+    column(4, tags$div(
+      style = "background-color: rgb(64,147,83); padding: 3px; border-radius: 30px; text-align: center; color: white;
+               display: inline-block; border: 8px solid rgb(64,147,83); box-sizing: border-box;",
+      actionButton(button_id, label = button_label, icon = icon("rocket"),
+                   style = "background-color:rgb(209,219,39); color: black; border: none; 
+                            border-radius: 30px; padding: 10px 30px; font-size: 15px; text-align: center;")
+    ))
+  )
 }
 
 # Function to create the about tab with useful infos
@@ -90,6 +161,9 @@ aboutTab <- function() {
   )
 }
 
+# -----------------------------------------
+# Server functions
+# -----------------------------------------
 
 # Function to trigger shinyalert error with a custom message
 # @title Title of the popup
@@ -153,4 +227,5 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
 }
 
 
-  
+
+
