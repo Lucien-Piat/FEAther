@@ -34,7 +34,7 @@ FEAther/
 
 Click this link : https://lucien-piat.shinyapps.io/feather/
 
-### With Docker (not available yet) 
+### With Docker 
 To run FEAther in a Docker container:
 
 From the root of the FEAther directory, build the Docker image:
@@ -180,6 +180,7 @@ Yu G, Wang L-G, Han Y, He Q-Y (2012). _clusterProfiler: an R package for compari
 ---
 
 By using this project, you agree to cite the above packages where applicable. For further details on how to install or use each package, refer to their respective CRAN pages.
+
 ### Citing This Project
 
 If you are using this project or referencing it in your own work, please use the following citation:
