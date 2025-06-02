@@ -3,7 +3,7 @@
 # Author: Maël Louis, Antoine Malet and Lucien Piat 
 # Affiliation: Rouen Normandie University
 # Creation: 04/10/2024
-# Last update : 18/11/2024
+# Last update : 08/05/2025
 # -----------------------------------------
 
 # Use the Rocker Shiny image as the base
@@ -17,10 +17,14 @@ RUN apt-get update && apt-get install -y \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the R packages required by your app
+# Install CRAN packages required by the app
 RUN R -e "install.packages(c('shiny', 'shinycssloaders', 'shinyalert', 'shinydashboard', \
-    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', \
-    'data.table', 'dplyr', 'plotly'), repos = 'https://cran.rstudio.com/')"
+    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', 'ggridges', 'data.table', \
+    'dplyr', 'plotly', 'shinyBS'), repos = 'https://cran.rstudio.com/')"
+
+# Install Bioconductor packages
+RUN R -e "install.packages('BiocManager', repos = 'https://cran.rstudio.com/')" \
+    && R -e "BiocManager::install(c('clusterProfiler', 'org.Mm.eg.db', 'org.Hs.eg.db'), ask = FALSE)"
 
 # Create a directory for the Shiny app
 RUN mkdir -p /srv/shiny-server/FEAther

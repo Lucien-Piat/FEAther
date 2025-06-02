@@ -18,5 +18,5 @@ library("shiny")
 source("server.R")        # Server logic
 source("ui.R")            # UI layout
 
-# Call shinyApp after everything is sourced
+# Call shinyApp after everything is sourcedx
 shinyApp(ui, server)
