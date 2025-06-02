@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install CRAN packages required by the app
 RUN R -e "install.packages(c('shiny', 'shinycssloaders', 'shinyalert', 'shinydashboard', \
-    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', 'data.table', \
+    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', 'ggridges', 'data.table', \
     'dplyr', 'plotly', 'shinyBS'), repos = 'https://cran.rstudio.com/')"
 
 # Install Bioconductor packages
