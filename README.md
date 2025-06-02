@@ -76,7 +76,8 @@ install.packages(c(
   "data.table", 
   "dplyr", 
   "plotly", 
-  "shinyjs"
+  "shinyjs",
+  "ggridges",
 ))
 
 # From Bioconductor
