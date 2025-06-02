@@ -64,6 +64,7 @@ Open app.R in RStudio and ensure all files in the repository are loaded.
 
 Install any missing packages :
 ```R
+# Base R packages
 install.packages(c(
   "shiny", 
   "shinydashboard", 
@@ -75,14 +76,15 @@ install.packages(c(
   "data.table", 
   "dplyr", 
   "plotly", 
-  "shinyjs"
+  "shinyjs",
+  "ggridges",
 ))
 
-# For clusterProfiler, as it might require Bioconductor, you can install it like this:
-if (!requireNamespace("BiocManager", quietly = TRUE)) {
-  install.packages("BiocManager")
-}
-BiocManager::install("clusterProfiler")
+# From Bioconductor
+if (!requireNamespace("BiocManager", quietly = TRUE))
+    install.packages("BiocManager", repos = "https://cran.rstudio.com/")
+
+BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db"), ask = FALSE)
 
 ```
 Click Run App in RStudio or run the following command in the R console:

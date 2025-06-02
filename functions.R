@@ -7,7 +7,7 @@
 # -----------------------------------------
 
 # -----------------------------------------
-# Graphic functions
+# UI functions
 # -----------------------------------------
 
 # Function to create a custom header with an image
@@ -35,6 +35,90 @@ custom_home <- function() {
         )
     )
 }
+
+# Function for the UI Ora plots
+oraPlotsUI <- function() {
+  tabsetPanel(
+    tabPanel("Dot Plot", withSpinner(plotOutput("go_plot", height = 600))),
+    tabPanel("Bar Plot", withSpinner(plotOutput("barplot", height = 600))),
+    tabPanel("Net Plot", withSpinner(plotOutput("emapplot", height = 600))),
+    tabPanel("Tree Plot", withSpinner(plotOutput("treeplot", height = 600)))
+  )
+}
+
+# Function for the UI GSEA plots
+gseaPlotsUI <- function() {
+  tabsetPanel(
+    type = "tabs",
+    tabPanel("Dot Plot", withSpinner(plotOutput("gsea_dotplot", height = 600))),
+    tabPanel("Emap Plot", withSpinner(plotOutput("gsea_emapplot", height = 600))),
+    tabPanel("Ridge Plot", withSpinner(plotOutput("gsea_ridgeplot", height = 600))),
+    tabPanel("GSEA Plot", withSpinner(plotOutput("gsea_gseaplot", height = 600)))
+  )
+}
+
+#Function to display a table ORA + GSEA
+resultsTableUI <- function(title, output_id, include_mode_switch = FALSE, mode_input_id = NULL) {
+  fluidRow(
+    box(
+      title = title,
+      width = 12,
+      if (include_mode_switch) {
+        radioButtons(
+          inputId = mode_input_id,
+          label = "Display Mode:",
+          choices = c("Show stats" = "detailed", "Show genes" = "genes"),
+          selected = "detailed",
+          inline = TRUE
+        )
+      },
+      DTOutput(output_id) %>% withSpinner()
+    )
+  )
+}
+
+enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = NULL) {
+  tooltip_id <- tooltip_id %||% paste0(prefix, "_p_adjust_info")
+  
+  fluidRow(
+    column(2, selectInput(paste0(prefix, "_ontology"), "Ontology:",
+                          choices = c("Biological Process" = "BP",
+                                      "Molecular Function" = "MF",
+                                      "Cellular Component" = "CC",
+                                      "All" = "ALL"),
+                          selected = "BP")),
+    
+    column(3, div(style = "display: flex; align-items: center;",
+                  selectInput(paste0(prefix, "_p_adjust_method"), "P-Adjust Method:",
+                              choices = c("Bonferroni" = "BH",
+                                          "False Discovery Rate (FDR)" = "fdr"),
+                              selected = "BH"),
+                  tags$span(icon("info-circle"), id = tooltip_id,
+                            style = "cursor: pointer; margin-left: 5px;")
+    )),
+    
+    bsTooltip(id = tooltip_id,
+              title = "P.value adjustment method, for more information click on the about tab",
+              placement = "right", trigger = "hover"),
+    
+    if (prefix != "gsea") {
+      column(3, radioButtons(paste0(prefix, "_representation_filter"), "Select Representation Type:",
+                             choices = c("⬆️ Over-represented" = "over",
+                                         "⬇️ Under-represented" = "under",
+                                         "🔀 Both" = "both"),
+                             selected = "both", inline = FALSE))
+    },
+    
+    column(4, tags$div(
+      style = "background-color: rgb(64,147,83); padding: 3px; border-radius: 30px; text-align: center; color: white;
+               display: inline-block; border: 8px solid rgb(64,147,83); box-sizing: border-box;",
+      actionButton(button_id, label = button_label, icon = icon("rocket"),
+                   style = "background-color:rgb(209,219,39); color: black; border: none; 
+                            border-radius: 30px; padding: 10px 30px; font-size: 15px; text-align: center;")
+    ))
+  )
+}
+
 
 # Function to create the about tab with useful infos
 aboutTab <- function() {
@@ -88,6 +172,12 @@ aboutTab <- function() {
   )
 }
 
+# -----------------------------------------
+# Server functions
+# -----------------------------------------
+
+# Create custom operator 
+`%||%` <- function(a, b) if (!is.null(a)) a else b
 
 # Function to trigger shinyalert error with a custom message
 # @title Title of the popup
@@ -114,7 +204,6 @@ show_shiny_error <- function(title, message) {
 # If not, it displays a message indicating that no enrichment was found.
 # If `use_pairwise_sim = TRUE`, it computes term similarity before plotting.
 # Otherwise, it directly generates the plot using `plot_func`.
-
 render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = NULL, use_pairwise_sim = FALSE) {
   # Check if the enrichment object exists and contains results
   if (is.null(ego) || nrow(ego@result) == 0) {
@@ -133,11 +222,15 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
     }
   }
   
+  # Adjust show_category to avoid exceeding available terms
+  n_terms <- nrow(ego@result)
+  adjusted_category <- if (!is.null(show_category)) min(show_category, n_terms) else NULL
+  
   # Generate the plot
-  p <- if (!is.null(show_category)) {
-    plot_func(ego, showCategory = show_category)
+  p <- if (!is.null(adjusted_category)) {
+    plot_func(ego, showCategory = adjusted_category)
   } else {
-    plot_func(ego)  # Some plots do not require showCategory
+    plot_func(ego)
   }
   
   # Apply custom theme or default minimal theme
@@ -147,4 +240,39 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
   print(p)
 }
 
+render_gsea_dotplot <- function(gsea_result, showCategory = 10) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  enrichplot::dotplot(gsea_result, showCategory = showCategory, split = ".sign") +
+    ggplot2::facet_grid(. ~ .sign)
+}
+
+render_gsea_emapplot <- function(gsea_result, showCategory = 30) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  gsea_result <- enrichplot::pairwise_termsim(gsea_result)
+  enrichplot::emapplot(gsea_result, showCategory = showCategory)
+}
+
+render_gsea_ridgeplot <- function(gsea_result, showCategory = 10) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  enrichplot::ridgeplot(gsea_result, showCategory = showCategory)
+}
+
+render_gsea_gseaplot <- function(gsea_result, top_n = 3) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
   
+  top_terms <- head(gsea_result@result$ID, top_n)
+  plots <- lapply(top_terms, function(term_id) {
+    enrichplot::gseaplot2(gsea_result, geneSetID = term_id, title = term_id)
+  })
+  
+  # Combine with patchwork if available
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    return(Reduce(`+`, plots))
+  } else {
+    return(plots[[1]])  # Fallback: return only the first plot
+  }
+}
+
+
+
+

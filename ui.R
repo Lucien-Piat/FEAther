@@ -1,48 +1,34 @@
-
 # -----------------------------------------
 # Project: FEA-ther (Functional Enrichment Analysis Tool)
 # Author: Maël Louis, Antoine Malet and Lucien Piat 
 # Affiliation: Rouen Normandie University
-# Creation: 04/10/2024
-# Last update: 18/11/2024
+# Creation: 04/10/2024 | Last update: 09/05/2025
 # -----------------------------------------
-library("shiny")
-library("shinycssloaders")
-library("shinyalert")
-library("shinydashboard")
-library("dashboardthemes")
-library("DT")
-library("plotly")
-library("data.table")
-source("functions.R")
-library("shinyjs")
-library("shinyBS")
-source(file.path("www", "custom_theme.R"))
 
-# UI object of the app
+# --- Load libraries ---
+library(shiny); library(shinycssloaders); library(shinyalert); library(shinydashboard)
+library(dashboardthemes); library(DT); library(plotly); library(data.table)
+library(shinyjs); library(shinyBS)
+
+# --- Load custom modules ---
+source("functions.R")                          # Contains custom UI and logic components
+source(file.path("www", "custom_theme.R"))     # Custom dashboard theme
+
+# --- UI Definition ---
 ui <- dashboardPage(
-  title = "FEA-ther", # Title for the tab name in browser,
+  title = "FEA-ther",  # Tab title in browser
   
-  # -----------------------------------------
-  # HEADER, with an image
-  # -----------------------------------------
+  # --- Custom Header ---
   custom_dashboard_header(),
   
-  # -----------------------------------------
-  # Sidebar, with images, custom color and a full file input suite
-  # -----------------------------------------
+  # --- Sidebar with navigation and input ---
   dashboardSidebar(
     sidebarMenu(
-      # Add a custom home on top with image
-      custom_home(),
-      
-      # Input options
+      custom_home(),  # Branding/logo sidebar top
       fileInput("file", "Choose a File", width = "100%", placeholder = "Your CSV", buttonLabel = "Import"),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
       selectInput("organism", "Select an organism name", choices = c("Mus musculus", "Homo sapiens")),
       tags$hr(style = "border: 1.5px solid #5c2a5c;"),
-      
-      # Add the menu
       menuItem("  Whole Data Inspection", tabName = "whole_data_inspection_mitem", icon = icon("eye"), selected = TRUE),
       menuItem("  Go Term Enrichment", tabName = "go_term_enrichment_mitem", icon = icon("database")),
       menuItem("  Pathway Enrichment", tabName = "pathway_enrichment_mitem", icon = icon("repeat")),
@@ -50,119 +36,98 @@ ui <- dashboardPage(
     )
   ),
   
-  # -----------------------------------------
-  # Body, with error handling, nice colors and all the boxes
-  # -----------------------------------------
+  # --- Main dashboard content area ---
   dashboardBody(
-    # Use the custom theme
-    customTheme,
-    tags$head(tags$style(HTML(".box { border-top: 3px solid #61b644; }"))),
+    customTheme,  # Apply custom theme
+    tags$head(tags$style(HTML(".box { border-top: 3px solid #61b644; }"))),  # Custom box style
     
-    # Define tab items
     tabItems(
-      # Whole data inspection, plot
+      
+      # === Whole Data Inspection Tab ===
       tabItem(
         tabName = "whole_data_inspection_mitem",
         h2("Whole Data Inspection"),
+        
         fluidRow(
-          # Add plot (replaced ggiraphOutput with plotlyOutput)
-          box(title = "Volcano Plot", width = 7, withSpinner(plotlyOutput(outputId = "volcano_plot"))),
-          # Add two sliders
-          box(
-            title = "Options", width = 5,
-            sliderInput("p_val_slider", "P-value cutoff from input", 0, 1, 0.05, step = 0.01),
-            sliderInput("log2FC_slider", "log2 FoldChange cutoff from input:", 0, 4, 1, step = 0.01),
-            
-            # Download button
-            fluidRow(
-              column(12, tags$div(style = "text-align: left;", downloadButton("download", label = "Download Table (CSV)")))
-            ),
-            fluidRow(
-              column(12, tags$div(style = "text-align: left;", tags$p(style = "color: balck;", "The table is filtered based on the pan/zoom of the plot AND the sliders")))
-            )
+          # --- Volcano Plot ---
+          box(title = "Volcano Plot", width = 7, withSpinner(plotlyOutput("volcano_plot"))),
+          
+          # --- Controls for Plot Filtering ---
+          box(title = "Options", width = 5,
+              sliderInput("p_val_slider", "P-value cutoff from input", min = 0, max = 1, value = 0.05, step = 0.01),
+              sliderInput("log2FC_slider", "log2 FoldChange cutoff from input:", min = 0, max = 4, value = 1, step = 0.01),
+              fluidRow(column(12, downloadButton("download", label = "Download Table (CSV)"))),
+              fluidRow(column(12, tags$p("The table is filtered based on the pan/zoom of the plot AND the sliders.")))
           )
         ),
-        # Add the table with a spinner
+        
+        # --- Filtered Table Output ---
         fluidRow(box(title = "Filtered table", width = 12, withSpinner(dataTableOutput("table"))))
       ),
       
+      # === GO Term Enrichment Tab (ORA + GSEA) ===
       tabItem(
         tabName = "go_term_enrichment_mitem",
         h2("GO Term Enrichment"),
-        h3('Over-Representation Analysis (ORA)'),
-        # Controls for enrichment analysis
-        fluidRow(
-          
-          column(3, selectInput("ontology", "Ontology:", 
-                                choices = c("Biological Process" = "BP", 
-                                            "Molecular Function" = "MF", 
-                                            "Cellular Component" = "CC",
-                                            "All" = "ALL"), 
-                                selected = "BP")),
-          
-          column(3, 
-                 div(style = "display: flex; align-items: center;", 
-                     selectInput("p_adjust_method", "P-Adjust Method:", 
-                                 choices = c("Bonferroni" = "BH",
-                                             "False Discovery Rate (FDR)" = "fdr"), 
-                                 selected = "BH"),
-                     tags$span(icon("info-circle"), id = "p_adjust_info", 
-                               style = "cursor: pointer; margin-left: 5px;") 
-                 )
-          ),
-          
-          bsTooltip(id = "p_adjust_info", title = "P.value adjustment method, for more information click on the about tab", 
-                    placement = "right", trigger = "hover"),
-          
-          column(2, 
-                 radioButtons("representation_filter", "Select Representation Type:", 
-                              choices = c(
-                                "⬆️ Over-represented" = "over", 
-                                "⬇️ Under-represented" = "under", 
-                                "🔀 Both" = "both"
-                              ), 
-                              selected = "both", 
-                              inline = FALSE)  # Ensure vertical stacking
-          ), 
-          column(2, 
-                 tags$div(
-                   style = "background-color: rgb(64,147,83); padding: 15px; border-radius: 30px; text-align: center; color: white;",
-                   actionButton("enrich_button", 
-                                label = " Start ORA", 
-                                icon = icon("rocket"),   # Changed icon from "search" to "rocket"
-                                style = "background-color:rgb(209,219,39); color: black; 
-                               border-radius: 30px; padding: 10px; font-size: 15px;")
-                 )
-          )
-          
-        ),
-        tags$hr(),
         
-        # Slider for controlling the number of GO terms shown
+        # Full-width container
         fluidRow(
-          column(7, 
-                 sliderInput("show_category", 
-                             label = "Number of Terms to Plot:", 
-                             min = 5, max = 50, value = 15, step = 1))
-        ),
-        
-        # Plots: Tabs for different ORA visualizations
-        tabsetPanel(
-          tabPanel("Dot Plot", withSpinner(plotOutput(outputId = "go_plot", height = 600))),
-          tabPanel("Bar Plot", withSpinner(plotOutput(outputId = "barplot", height = 600))),
-          tabPanel("Net Plot", withSpinner(plotOutput(outputId = "emapplot", height = 600))),
-          tabPanel("Tree Plot", withSpinner(plotOutput(outputId = "treeplot", height = 600)))
-        )
-      ), 
+          column(width = 12, tabsetPanel( id = "go_mode_tabs", type = "pills",  
+              
+              # --- ORA Tab ---
+              tabPanel(
+                title = div(
+                  icon("chart-bar", style = "color: black;"),
+                  strong(" Over-Representation Analysis (ORA)", style = "color: black;")),br(),
       
+                # --- ORA Input Controls ---
+                h3("ORA Configuration"),
+                enrichmentControlsUI(prefix = "ora", button_id = "ora_enrich_button", button_label = " Start ORA"),
+                tags$hr(),
+                
+                # --- ORA Plot Controls ---
+                fluidRow(column(7, sliderInput("ora_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1))),
+                
+                # --- ORA Plots Output ---
+                oraPlotsUI(),
+                
+                # --- ORA Results Table ---
+                resultsTableUI(title = "ORA Results Table", output_id = "ego_table", include_mode_switch = TRUE, mode_input_id = "ora_table_mode")
+              ),
+              
+              # --- GSEA Tab ---
+              tabPanel(
+                title = div(
+                  icon("dna", style = "color: black;"),
+                  strong(" Gene Set Enrichment Analysis (GSEA)", style = "color: black;")),br(),
+                
+                # --- GSEA Input Controls ---
+                h3("GSEA Configuration"),
+                enrichmentControlsUI(prefix = "gsea", button_id = "gsea_enrich_button", button_label = " Start GSEA"),
+                
+                # --- GSEA Plot Controls ---
+                fluidRow(column(7, sliderInput("gsea_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1))),
+                
+                # --- GSEA Plots ---
+                gseaPlotsUI(),
+                
+                # --- GSEA Results Table ---
+                resultsTableUI(title = "GSEA Results Table", output_id = "gsea_table")
+              )
+            )
+          )
+        )
+      ),
+      
+      # === Pathway Enrichment Placeholder Tab ===
       tabItem(
         tabName = "pathway_enrichment_mitem",
         h2("Pathway Enrichment"),
         tags$div(style = "text-align: center;", tags$img(src = "dodo.png", height = "100", alt = "dodo")),
-        p("#TODO")
+        p("#TODO: Pathway analysis module coming soon.")
       ),
       
-      # Create the about tab from custom function
+      # === About Tab ===
       aboutTab()
     )
   )
