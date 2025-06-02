@@ -180,19 +180,19 @@ server <- function(input, output, session) {
   
   # Render enrichment plots for ORA results
   output$go_plot <- renderPlot({
-    render_go_plot(dotplot, ora_results(), input$show_category)
+    render_go_plot(dotplot, ora_results(), input$ora_show_category)
   })
   
   output$barplot <- renderPlot({
-    render_go_plot(barplot, ora_results(), input$show_category)
+    render_go_plot(barplot, ora_results(), input$ora_show_category)
   })
   
   output$treeplot <- renderPlot({
-    render_go_plot(enrichplot::treeplot, ora_results(), input$show_category,  use_pairwise_sim = TRUE)
+    render_go_plot(enrichplot::treeplot, ora_results(), input$ora_show_category,  use_pairwise_sim = TRUE)
   })
   
   output$emapplot <- renderPlot({
-    render_go_plot(enrichplot::emapplot, ora_results(), input$show_category, use_pairwise_sim = TRUE)
+    render_go_plot(enrichplot::emapplot, ora_results(), input$ora_show_category, use_pairwise_sim = TRUE)
   })
   
   # Render ORA results table with selectable columns
@@ -277,6 +277,38 @@ server <- function(input, output, session) {
         dom = 'Bfrtip',
         buttons = c('copy', 'csv', 'pdf')
       )
+    )
+  })
+  
+  output$gsea_dotplot <- renderPlot({
+    render_gsea_dotplot(gsea_result(), input$gsea_show_category)
+  })
+  
+  output$gsea_emapplot <- renderPlot({
+    render_gsea_emapplot(gsea_result(), input$gsea_show_category)
+  })
+  
+  output$gsea_ridgeplot <- renderPlot({
+    render_gsea_ridgeplot(gsea_result(), input$gsea_show_category)
+  })
+  
+  output$gsea_gseaplot <- renderPlot({
+    results = req(gsea_result())
+    
+    # Get the description (name) of the top gene set
+    # results@result contains both ID and Description columns
+    gene_set_name <- results@result$Description[1]
+    gene_set_id <- results@result$ID[1]
+    
+
+    
+    # Option 3: Show description with statistics
+    nes <- round(results@result$NES[1], 3)
+    pval <- format(results@result$p.adjust[1], digits = 3)
+    enrichplot::gseaplot2(
+     results, 
+     geneSetID = gene_set_id,
+     title = paste0(gene_set_name, "\nNES = ", nes, ", Adjusted p-value = ", pval)
     )
   })
 }
