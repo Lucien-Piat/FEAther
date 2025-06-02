@@ -46,6 +46,17 @@ oraPlotsUI <- function() {
   )
 }
 
+# Function for the UI GSEA plots
+gseaPlotsUI <- function() {
+  tabsetPanel(
+    type = "tabs",
+    tabPanel("Dot Plot", withSpinner(plotOutput("gsea_dotplot", height = 600))),
+    tabPanel("Emap Plot", withSpinner(plotOutput("gsea_emapplot", height = 600))),
+    tabPanel("Ridge Plot", withSpinner(plotOutput("gsea_ridgeplot", height = 600))),
+    tabPanel("GSEA Plot", withSpinner(plotOutput("gsea_gseaplot", height = 600)))
+  )
+}
+
 #Function to display a table ORA + GSEA
 resultsTableUI <- function(title, output_id, include_mode_switch = FALSE, mode_input_id = NULL) {
   fluidRow(
@@ -227,6 +238,39 @@ render_go_plot <- function(plot_func, ego, show_category = NULL, custom_theme = 
   
   # Ensure plot is rendered
   print(p)
+}
+
+render_gsea_dotplot <- function(gsea_result, showCategory = 10) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  enrichplot::dotplot(gsea_result, showCategory = showCategory, split = ".sign") +
+    ggplot2::facet_grid(. ~ .sign)
+}
+
+render_gsea_emapplot <- function(gsea_result, showCategory = 30) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  gsea_result <- enrichplot::pairwise_termsim(gsea_result)
+  enrichplot::emapplot(gsea_result, showCategory = showCategory)
+}
+
+render_gsea_ridgeplot <- function(gsea_result, showCategory = 10) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  enrichplot::ridgeplot(gsea_result, showCategory = showCategory)
+}
+
+render_gsea_gseaplot <- function(gsea_result, top_n = 3) {
+  if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
+  
+  top_terms <- head(gsea_result@result$ID, top_n)
+  plots <- lapply(top_terms, function(term_id) {
+    enrichplot::gseaplot2(gsea_result, geneSetID = term_id, title = term_id)
+  })
+  
+  # Combine with patchwork if available
+  if (requireNamespace("patchwork", quietly = TRUE)) {
+    return(Reduce(`+`, plots))
+  } else {
+    return(plots[[1]])  # Fallback: return only the first plot
+  }
 }
 
 
