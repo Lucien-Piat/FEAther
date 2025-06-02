@@ -60,6 +60,14 @@ git clone https://github.com/yourusername/FEAther.git
 cd FEAther
 ```
 
+Install via a conda environement (recommended)
+```bash
+conda env create -f r_env_full.yml
+conda activate Feather
+R
+```
+
+OR
 Open app.R in RStudio and ensure all files in the repository are loaded.
 
 Install any missing packages :
@@ -78,7 +86,6 @@ install.packages(c(
   "plotly", 
   "shinyjs",
   "ggridges",
-  "shinyBS"
 ))
 
 # From Bioconductor
@@ -86,8 +93,9 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager", repos = "https://cran.rstudio.com/")
 
 BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db"), ask = FALSE)
-
 ```
+
+
 Click Run App in RStudio or run the following command in the R console:
 
 ```R
@@ -109,9 +117,7 @@ List of R packages used in the FEAther app :
 - `dplyr`
 - `plotly`
 - `shinyjs`
-- `clusterProfiler`
-- `ggridges`
-- `shinyBS`
+- `clusterProfiler` 
 
 ## 📖 Citations
 ### Packages Used in This Project
@@ -180,15 +186,6 @@ Xu S, Hu E, Cai Y, Xie Z, Luo X, Zhan L, Tang W, Wang Q, Liu B, Wang R, Xie W, W
 Wu T, Hu E, Xu S, Chen M, Guo P, Dai Z, Feng T, Zhou L, Tang W, Zhan L, Fu X, Liu S, Bo X, Yu G (2021). _clusterProfiler 4.0: A universal enrichment tool for interpreting omics data._ The Innovation, 2(3):100141.  
 Yu G, Wang L-G, Han Y, He Q-Y (2012). _clusterProfiler: an R package for comparing biological themes among gene clusters._ OMICS: A Journal of Integrative Biology, 16(5):284-287.
 
-
-#### 📦 `ggridges`
-Claus O. Wilke (2024). ggridges: Ridgeline Plots in 'ggplot2'.R package version 0.5.6,<https://wilkelab.org/ggridges/>.
-
-#### 📦 `shinyBS`
- Bailey E (2022). _shinyBS: Twitter Bootstrap Components for Shiny_.
-  doi:10.32614/CRAN.package.shinyBS
-  <https://doi.org/10.32614/CRAN.package.shinyBS>, R package version
-  0.61.1, <https://CRAN.R-project.org/package=shinyBS>.
 ---
 
 By using this project, you agree to cite the above packages where applicable. For further details on how to install or use each package, refer to their respective CRAN pages.
