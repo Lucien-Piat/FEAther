@@ -70,54 +70,63 @@ ui <- dashboardPage(
         tabName = "go_term_enrichment_mitem",
         h2("GO Term Enrichment"),
         
-        # Full-width container
-        fluidRow(
-          column(width = 12, tabsetPanel( id = "go_mode_tabs", type = "pills",  
-              
-              # --- ORA Tab ---
-              tabPanel(
-                title = div(
-                  icon("chart-bar", style = "color: black;"),
-                  strong(" Over-Representation Analysis (ORA)", style = "color: black;")),br(),
-      
-                # --- ORA Input Controls ---
-                h3("ORA Configuration"),
-                enrichmentControlsUI(prefix = "ora", button_id = "ora_enrich_button", button_label = " Start ORA"),
-                tags$hr(),
-                
-                # --- ORA Plot Controls ---
-                fluidRow(column(7, sliderInput("ora_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1))),
-                
-                # --- ORA Plots Output ---
-                oraPlotsUI(),
-                
-                # --- ORA Results Table ---
-                resultsTableUI(title = "ORA Results Table", output_id = "ego_table", include_mode_switch = TRUE, mode_input_id = "ora_table_mode")
-              ),
-              
-              # --- GSEA Tab ---
-              tabPanel(
-                title = div(
-                  icon("dna", style = "color: black;"),
-                  strong(" Gene Set Enrichment Analysis (GSEA)", style = "color: black;")),br(),
-                
-                # --- GSEA Input Controls ---
-                h3("GSEA Configuration"),
-                enrichmentControlsUI(prefix = "gsea", button_id = "gsea_enrich_button", button_label = " Start GSEA"),
-                
-                # --- GSEA Plot Controls ---
-                fluidRow(column(7, sliderInput("gsea_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1))),
-                
-                # --- GSEA Plots ---
-                gseaPlotsUI(),
-                
-                # --- GSEA Results Table ---
-                resultsTableUI(title = "GSEA Results Table", output_id = "gsea_table")
-              )
-            )
-          )
+      # Full-width container
+      fluidRow(
+        column(width = 12, tabsetPanel( id = "go_mode_tabs", type = "pills",  
+                                        
+                                        # --- ORA Tab ---
+                                        tabPanel(
+                                          title = div(
+                                            icon("chart-bar", style = "color: black;"),
+                                            strong(" Over-Representation Analysis (ORA)", style = "color: black;")),br(),
+                                          
+                                          # --- ORA Controls Box ---
+                                          box(
+                                            title = "ORA Configuration",
+                                            width = 12,
+                                            status = "primary",
+                                            solidHeader = TRUE,
+                                            
+                                            enrichmentControlsUI(prefix = "ora", button_id = "ora_enrich_button", button_label = " Start ORA"),
+                                            tags$hr(),
+                                            fluidRow(column(7, sliderInput("ora_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1)))
+                                          ),
+                                          
+                                          # --- ORA Plots Output ---
+                                          oraPlotsUI(),
+                                          
+                                          # --- ORA Results Table ---
+                                          resultsTableUI(title = "ORA Results Table", output_id = "ego_table", include_mode_switch = TRUE, mode_input_id = "ora_table_mode")
+                                        ),
+                                        
+                                        # --- GSEA Tab ---
+                                        tabPanel(
+                                          title = div(
+                                            icon("dna", style = "color: black;"),
+                                            strong(" Gene Set Enrichment Analysis (GSEA)", style = "color: black;")),br(),
+                                          
+                                          # --- GSEA Controls Box ---
+                                          box(
+                                            title = "GSEA Configuration",
+                                            width = 12,
+                                            status = "primary",
+                                            solidHeader = TRUE,
+                                            
+                                            enrichmentControlsUI(prefix = "gsea", button_id = "gsea_enrich_button", button_label = " Start GSEA"),
+                                            tags$hr(),
+                                            fluidRow(column(7, sliderInput("gsea_show_category", "Number of Terms to Plot:", min = 5, max = 50, value = 15, step = 1)))
+                                          ),
+                                          
+                                          # --- GSEA Plots ---
+                                          gseaPlotsUI(),
+                                          
+                                          # --- GSEA Results Table ---
+                                          resultsTableUI(title = "GSEA Results Table", output_id = "gsea_table")
+                                        )
         )
-      ),
+        )
+      )
+    ),
       
       # === Pathway Enrichment Placeholder Tab ===
       tabItem(
