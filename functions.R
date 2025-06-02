@@ -53,7 +53,27 @@ gseaPlotsUI <- function() {
     tabPanel("Dot Plot", withSpinner(plotOutput("gsea_dotplot", height = 600))),
     tabPanel("Emap Plot", withSpinner(plotOutput("gsea_emapplot", height = 600))),
     tabPanel("Ridge Plot", withSpinner(plotOutput("gsea_ridgeplot", height = 600))),
-    tabPanel("GSEA Plot", withSpinner(plotOutput("gsea_gseaplot", height = 600)))
+    tabPanel("GSEA Plot ⭐", 
+             fluidRow(
+               column(12,
+                      fluidRow(
+                        column(9,
+                               selectInput("gsea_pathway_select", 
+                                           "Choose pathway to visualize:", 
+                                           choices = NULL,
+                                           width = "100%")
+                        ),
+                        column(3,
+                               tags$label("Download", style = "display: block; margin-bottom: 5px;"),
+                               downloadButton("download_gsea_plot", "Download Plot", 
+                                              style = "width: 100%;")
+                        )
+                      ),
+                      hr(),  # Add a horizontal line separator
+                      withSpinner(plotOutput("gsea_gseaplot", height = 600))
+               )
+             )
+    )
   )
 }
 
@@ -253,8 +273,9 @@ render_gsea_emapplot <- function(gsea_result, showCategory = 30) {
 }
 
 render_gsea_ridgeplot <- function(gsea_result, showCategory = 10) {
+  
   if (is.null(gsea_result) || nrow(gsea_result@result) == 0) return(NULL)
-  enrichplot::ridgeplot(gsea_result, showCategory = showCategory)
+  enrichplot::ridgeplot(gsea_result, showCategory =  10)
 }
 
 render_gsea_gseaplot <- function(gsea_result, top_n = 3) {
@@ -272,7 +293,3 @@ render_gsea_gseaplot <- function(gsea_result, top_n = 3) {
     return(plots[[1]])  # Fallback: return only the first plot
   }
 }
-
-
-
-
