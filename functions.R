@@ -101,12 +101,21 @@ enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = N
   tooltip_id <- tooltip_id %||% paste0(prefix, "_p_adjust_info")
   
   fluidRow(
-    column(2, selectInput(paste0(prefix, "_ontology"), "Ontology:",
-                          choices = c("Biological Process" = "BP",
-                                      "Molecular Function" = "MF",
-                                      "Cellular Component" = "CC",
-                                      "All" = "ALL"),
-                          selected = "BP")),
+    column(2, 
+           div(style = "display: flex; align-items: center;",
+               selectInput(paste0(prefix, "_ontology"), "Ontology:",
+                           choices = c("Biological Process" = "BP",
+                                       "Molecular Function" = "MF",
+                                       "Cellular Component" = "CC",
+                                       "All" = "ALL"),
+                           selected = "BP"),
+               tags$span(icon("info-circle"), id = paste0(prefix, "_ontology_info"),
+                         style = "cursor: pointer; margin-left: 5px;")
+           ),
+           bsTooltip(id = paste0(prefix, "_ontology_info"),
+                     title = "Gene Ontology categories: BP (what biological goals are accomplished), MF (molecular activities), CC (where in the cell it happens)",
+                     placement = "right", trigger = "hover")
+    ),
     
     column(3, div(style = "display: flex; align-items: center;",
                   selectInput(paste0(prefix, "_p_adjust_method"), "P-Adjust Method:",
@@ -118,7 +127,7 @@ enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = N
     )),
     
     bsTooltip(id = tooltip_id,
-              title = "P.value adjustment method, for more information click on the about tab",
+              title = "P-value adjustment method corrects for multiple testing. FDR is less stringent than Bonferroni. See About tab for details.",
               placement = "right", trigger = "hover"),
     
     if (prefix != "gsea") {
@@ -292,4 +301,92 @@ render_gsea_gseaplot <- function(gsea_result, top_n = 3) {
   } else {
     return(plots[[1]])  # Fallback: return only the first plot
   }
+}
+
+# Function for the UI Pathway plots
+pathwayPlotsUI <- function() {
+  tabsetPanel(
+    tabPanel("Pathway View", 
+             fluidRow(
+               column(12,
+                      fluidRow(
+                        column(6,
+                               selectInput("pathview_pathway_select", 
+                                           "Select pathway to visualize:", 
+                                           choices = NULL,
+                                           width = "100%")
+                        ),
+                        column(3,
+                               br(),
+                               downloadButton("download_pathview", "Download Pathway View", 
+                                              style = "width: 100%;")
+                        )
+                      ),
+                      hr(),
+                      withSpinner(imageOutput("pathway_view", height = "auto"))
+               )
+             )
+    ),
+    tabPanel("Network Plot", withSpinner(plotOutput("pathway_emapplot", height = 600))),
+    tabPanel("Cnet Plot", withSpinner(plotOutput("pathway_cnetplot", height = 600)))
+  )
+}
+
+# Function to render pathway enrichment plots
+render_pathway_plot <- function(plot_func, pathway_result, show_category = NULL, custom_theme = NULL, use_pairwise_sim = FALSE) {
+  # Check if the enrichment object exists and contains results
+  if (is.null(pathway_result) || nrow(pathway_result@result) == 0) {
+    plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+    text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+    return()
+  }
+  
+  # For network plots, ensure we have enough pathways
+  if (use_pairwise_sim && nrow(pathway_result@result) < 2) {
+    plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+    text(1, 1, "Impossible to plot, insufficient data to compute\n(Need at least 2 pathways for network plot)", col = "red", cex = 1.2)
+    return()
+  }
+  
+  # Compute pairwise similarity if needed
+  if (use_pairwise_sim) {
+    pathway_result <- tryCatch({
+      enrichplot::pairwise_termsim(pathway_result)
+    }, error = function(e) {
+      return(NULL)
+    })
+    
+    if (is.null(pathway_result)) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+      return()
+    }
+  }
+  
+  # Adjust show_category to avoid exceeding available terms
+  n_terms <- nrow(pathway_result@result)
+  adjusted_category <- if (!is.null(show_category)) min(show_category, n_terms) else min(10, n_terms)
+  
+  # Generate the plot with error handling
+  p <- tryCatch({
+    if (!is.null(adjusted_category)) {
+      plot_func(pathway_result, showCategory = adjusted_category)
+    } else {
+      plot_func(pathway_result)
+    }
+  }, error = function(e) {
+    return(NULL)
+  })
+  
+  if (is.null(p)) {
+    plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+    text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+    return()
+  }
+  
+  # Apply custom theme or default minimal theme
+  p <- p + (custom_theme %||% theme_minimal())
+  
+  # Ensure plot is rendered
+  print(p)
 }

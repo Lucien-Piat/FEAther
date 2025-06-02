@@ -19,6 +19,9 @@ library('clusterProfiler')
 library("org.Mm.eg.db") 
 library("org.Hs.eg.db")
 library("ggplot2")
+library("ReactomePA")
+library("enrichplot")
+library("pathview")
 
 server <- function(input, output, session) {
   
@@ -350,4 +353,373 @@ server <- function(input, output, session) {
              width = 10, height = 8, dpi = 300, units = "in")
     }
   )
+  
+  # -----------------------------------------
+  # Pathway Enrichment Analysis (ORA + GSEA)
+  # -----------------------------------------
+  
+  pathway_results <- eventReactive(input$pathway_enrich_button, {
+    # Choose data based on method
+    if (input$pathway_method == "ORA") {
+      df <- req(filtered_data())  # Use filtered data for ORA
+    } else {
+      df <- req(data())  # Use all data for GSEA
+    }
+    
+    # Convert IDs
+    id_mapping <- tryCatch(
+      bitr(
+        df$ID,
+        fromType = "ENSEMBL",
+        toType = "ENTREZID",
+        OrgDb = OrgDb_selected()
+      ),
+      error = function(e) return(NULL)
+    )
+    
+    if (is.null(id_mapping) || nrow(id_mapping) == 0) return(NULL)
+    df <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
+    
+    # Perform enrichment based on database and method
+    if (input$pathway_database == "KEGG") {
+      organism_code <- if(input$organism == "Homo sapiens") "hsa" else "mmu"
+      
+      if (input$pathway_method == "ORA") {
+        # Apply representation filter for ORA
+        if (input$pathway_representation_filter == "over") {
+          df <- df[df$log2FC > 0, ]
+        } else if (input$pathway_representation_filter == "under") {
+          df <- df[df$log2FC < 0, ]
+        }
+        
+        gene_list <- unique(df$ENTREZID)
+        if (length(gene_list) == 0) return(NULL)
+        
+        # ORA for KEGG - no p-value cutoff since data is already filtered
+        result <- tryCatch(
+          enrichKEGG(
+            gene = gene_list,
+            organism = organism_code,
+            pAdjustMethod = input$pathway_p_adjust_method,
+            pvalueCutoff = 1,  # No cutoff
+            qvalueCutoff = 1   # No cutoff
+          ),
+          error = function(e) return(NULL)
+        )
+        
+      } else {
+        # GSEA for KEGG
+        gene_list <- df$log2FC
+        names(gene_list) <- df$ENTREZID
+        gene_list <- sort(gene_list, decreasing = TRUE)
+        gene_list <- gene_list[!duplicated(names(gene_list))]
+        
+        result <- tryCatch(
+          gseKEGG(
+            geneList = gene_list,
+            organism = organism_code,
+            pAdjustMethod = input$pathway_p_adjust_method,
+            pvalueCutoff = 0.05,
+            verbose = FALSE
+          ),
+          error = function(e) return(NULL)
+        )
+      }
+      
+    } else if (input$pathway_database == "Reactome") {
+      organism_name <- if(input$organism == "Homo sapiens") "human" else "mouse"
+      
+      if (input$pathway_method == "ORA") {
+        # Apply representation filter for ORA
+        if (input$pathway_representation_filter == "over") {
+          df <- df[df$log2FC > 0, ]
+        } else if (input$pathway_representation_filter == "under") {
+          df <- df[df$log2FC < 0, ]
+        }
+        
+        gene_list <- unique(df$ENTREZID)
+        if (length(gene_list) == 0) return(NULL)
+        
+        # ORA for Reactome - no p-value cutoff since data is already filtered
+        result <- tryCatch(
+          enrichPathway(
+            gene = gene_list,
+            organism = organism_name,
+            pAdjustMethod = input$pathway_p_adjust_method,
+            pvalueCutoff = 1,  # No cutoff
+            qvalueCutoff = 1,  # No cutoff
+            readable = TRUE
+          ),
+          error = function(e) return(NULL)
+        )
+        
+      } else {
+        # GSEA for Reactome
+        gene_list <- df$log2FC
+        names(gene_list) <- df$ENTREZID
+        gene_list <- sort(gene_list, decreasing = TRUE)
+        gene_list <- gene_list[!duplicated(names(gene_list))]
+        
+        result <- tryCatch(
+          gsePathway(
+            geneList = gene_list,
+            organism = organism_name,
+            pAdjustMethod = input$pathway_p_adjust_method,
+            pvalueCutoff = 0.05,
+            verbose = FALSE
+          ),
+          error = function(e) return(NULL)
+        )
+      }
+    }
+    
+    return(result)
+  })
+  
+  # Update pathway choices when pathway results change
+  observe({
+    res <- pathway_results()
+    if (!is.null(res) && nrow(res@result) > 0 && input$pathway_database == "KEGG") {
+      # Extract KEGG pathway IDs (remove organism prefix)
+      pathway_ids <- gsub("^[a-z]{3}", "", res@result$ID)
+      
+      # Create named choices: Description as label, pathway ID as value
+      pathway_choices <- setNames(
+        pathway_ids,
+        paste0(res@result$Description, 
+               " (p.adj: ", format(res@result$p.adjust, digits = 2), ")")
+      )
+      
+      updateSelectInput(session, "pathview_pathway_select",
+                        choices = pathway_choices,
+                        selected = pathway_ids[1])
+    } else if (input$pathway_database == "Reactome") {
+      updateSelectInput(session, "pathview_pathway_select",
+                        choices = list("Pathway View only available for KEGG" = ""),
+                        selected = "")
+    }
+  })
+  
+  # Generate pathview plot
+  pathview_plot_reactive <- reactive({
+    req(input$pathview_pathway_select)
+    req(input$pathway_database == "KEGG")
+    
+    # Get the appropriate data
+    if (input$pathway_method == "ORA") {
+      df <- req(filtered_data())
+    } else {
+      df <- req(data())
+    }
+    
+    # Convert to ENTREZID
+    id_mapping <- tryCatch(
+      bitr(
+        df$ID,
+        fromType = "ENSEMBL",
+        toType = "ENTREZID",
+        OrgDb = OrgDb_selected()
+      ),
+      error = function(e) return(NULL)
+    )
+    
+    if (is.null(id_mapping)) return(NULL)
+    
+    df_merged <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
+    
+    # Create gene data vector (fold changes with ENTREZID names)
+    gene_data <- df_merged$log2FC
+    names(gene_data) <- df_merged$ENTREZID
+    
+    # Remove duplicates (keep the one with highest absolute fold change)
+    gene_data <- gene_data[order(abs(gene_data), decreasing = TRUE)]
+    gene_data <- gene_data[!duplicated(names(gene_data))]
+    
+    # Get organism code
+    species <- if(input$organism == "Homo sapiens") "hsa" else "mmu"
+    
+    # Generate pathview plot
+    tryCatch({
+      pv_out <- pathview(
+        gene.data = gene_data,
+        pathway.id = input$pathview_pathway_select,
+        species = species,
+        out.suffix = "feather",
+        kegg.native = TRUE,
+        map.symbol = FALSE,
+        limit = list(gene = max(abs(gene_data))),
+        bins = list(gene = 10),
+        low = list(gene = "green"),
+        mid = list(gene = "gray"),
+        high = list(gene = "red")
+      )
+      
+      # Return the filename
+      return(paste0(species, input$pathview_pathway_select, ".feather.png"))
+      
+    }, error = function(e) {
+      return(NULL)
+    })
+  })
+  
+  # Display pathview image
+  output$pathway_view <- renderImage({
+    filename <- pathview_plot_reactive()
+    
+    if (is.null(filename) || !file.exists(filename)) {
+      # Return a placeholder image or empty plot
+      list(src = "", 
+           alt = "No pathway view available")
+    } else {
+      # Return the pathview image
+      list(src = filename,
+           contentType = 'image/png',
+           width = "100%",
+           height = "auto",
+           alt = paste("KEGG Pathway:", input$pathview_pathway_select))
+    }
+  }, deleteFile = FALSE)
+  
+  # Download handler for pathview
+  output$download_pathview <- downloadHandler(
+    filename = function() {
+      paste0("pathway_", input$pathview_pathway_select, "_", Sys.Date(), ".png")
+    },
+    content = function(file) {
+      filename <- pathview_plot_reactive()
+      if (!is.null(filename) && file.exists(filename)) {
+        file.copy(filename, file)
+      }
+    }
+  )
+  
+  # Add to the observe function that hides/shows elements based on method
+  observe({
+    if (input$pathway_method == "GSEA") {
+      shinyjs::hide("pathway_representation_filter")
+    } else {
+      shinyjs::show("pathway_representation_filter")
+    }
+    
+    # Show/hide pathview tab based on database selection
+    if (input$pathway_database != "KEGG") {
+      # You might want to add logic here to hide the tab or show a message
+    }
+  })
+  
+  # Conditionally hide/show representation filter based on method
+  observe({
+    if (input$pathway_method == "GSEA") {
+      shinyjs::hide("pathway_representation_filter")
+    } else {
+      shinyjs::show("pathway_representation_filter")
+    }
+  })
+  
+  # Update the plot outputs with better error handling
+  
+  output$pathway_emapplot <- renderPlot({
+    res <- pathway_results()
+    if (is.null(res)) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+      return()
+    }
+    
+    if (nrow(res@result) < 2) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "Impossible to plot, insufficient data to compute\n(Need at least 2 pathways for network plot)", col = "red", cex = 1.2)
+      return()
+    }
+    
+    show_cat <- min(input$pathway_show_category, 30, nrow(res@result))
+    render_pathway_plot(enrichplot::emapplot, res, show_cat, use_pairwise_sim = TRUE)
+  }, height = 600, width = 800)
+  
+  output$pathway_cnetplot <- renderPlot({
+    res <- pathway_results()
+    if (is.null(res) || nrow(res@result) == 0) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+      return()
+    }
+    
+    # Get appropriate data based on method
+    if (input$pathway_method == "ORA") {
+      df <- req(filtered_data())
+    } else {
+      df <- req(data())
+    }
+    
+    tryCatch({
+      # Create fold change vector
+      id_mapping <- bitr(df$ID, fromType = "ENSEMBL", toType = "ENTREZID", OrgDb = OrgDb_selected())
+      df_merged <- merge(df, id_mapping, by.x = "ID", by.y = "ENSEMBL")
+      
+      foldchanges <- df_merged$log2FC
+      names(foldchanges) <- df_merged$ENTREZID
+      
+      # For ORA, apply representation filter to fold changes
+      if (input$pathway_method == "ORA") {
+        if (input$pathway_representation_filter == "over") {
+          foldchanges <- foldchanges[foldchanges > 0]
+        } else if (input$pathway_representation_filter == "under") {
+          foldchanges <- foldchanges[foldchanges < 0]
+        }
+      }
+      
+      show_cat <- min(5, nrow(res@result))
+      p <- cnetplot(res, foldChange = foldchanges, showCategory = show_cat)
+      print(p)
+      
+    }, error = function(e) {
+      plot(1, type = "n", axes = FALSE, xlab = "", ylab = "")
+      text(1, 1, "Impossible to plot, insufficient data to compute", col = "red", cex = 1.5)
+    })
+  }, height = 600, width = 800)
+  
+  # Update table output with error handling
+  output$pathway_table <- DT::renderDataTable({
+    res <- pathway_results()
+    if (is.null(res) || nrow(res@result) == 0) {
+      return(datatable(data.frame(Message = "No significant pathways found")))
+    }
+    
+    df <- as.data.frame(res@result)
+    
+    # Select columns based on method
+    if (input$pathway_method == "ORA") {
+      selected_cols <- switch(input$pathway_table_mode,
+                              "detailed" = c("Description", "GeneRatio", "BgRatio", "p.adjust", "pvalue"),
+                              "genes" = c("Description", "GeneRatio", "geneID")
+      )
+    } else {
+      # GSEA has different columns
+      selected_cols <- switch(input$pathway_table_mode,
+                              "detailed" = c("Description", "enrichmentScore", "NES", "p.adjust", "pvalue"),
+                              "genes" = c("Description", "NES", "core_enrichment")
+      )
+    }
+    
+    # Check which columns actually exist in the data
+    available_cols <- intersect(selected_cols, colnames(df))
+    
+    if (length(available_cols) == 0) {
+      return(datatable(data.frame(Message = "No data available for display")))
+    }
+    
+    datatable(
+      df[, available_cols, drop = FALSE], 
+      extensions = 'Buttons',
+      options = list(
+        pageLength = 10,
+        scrollX = TRUE,
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'pdf')
+      )
+    )
+  })
+  
 }
+
+
