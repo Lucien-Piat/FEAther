@@ -85,7 +85,7 @@ install.packages(c(
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager", repos = "https://cran.rstudio.com/")
 
-BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db", "DOSE", "pathview"), ask = FALSE)
+BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db", "DOSE", "pathview", "ReactomePA"), ask = FALSE)
 
 ```
 Click Run App in RStudio or run the following command in the R console:
