@@ -18,6 +18,7 @@ library("shinyjs")
 library('clusterProfiler')
 library("org.Mm.eg.db") 
 library("org.Hs.eg.db")
+library("ggplot2")
 
 server <- function(input, output, session) {
   
@@ -292,23 +293,61 @@ server <- function(input, output, session) {
     render_gsea_ridgeplot(gsea_result(), input$gsea_show_category)
   })
   
-  output$gsea_gseaplot <- renderPlot({
-    results = req(gsea_result())
+  # Update pathway choices when GSEA results change
+  observe({
+    gsea <- gsea_result()
+    if (!is.null(gsea) && nrow(gsea@result) > 0) {
+      # Create named choices: Description as label, ID as value
+      pathway_choices <- setNames(
+        gsea@result$ID,
+        paste0(gsea@result$Description, 
+               " (NES: ", round(gsea@result$NES, 2), 
+               ", p.adj: ", format(gsea@result$p.adjust, digits = 2), ")")
+      )
+      
+      updateSelectInput(session, "gsea_pathway_select",
+                        choices = pathway_choices,
+                        selected = gsea@result$ID[1])
+    }
+  })
+  
+  # Store the current GSEA plot for downloading
+  gsea_plot_reactive <- reactive({
+    results <- req(gsea_result())
+    selected_id <- req(input$gsea_pathway_select)
     
-    # Get the description (name) of the top gene set
-    # results@result contains both ID and Description columns
-    gene_set_name <- results@result$Description[1]
-    gene_set_id <- results@result$ID[1]
+    # Find the selected pathway info
+    pathway_info <- results@result[results@result$ID == selected_id, ]
     
-
+    if (nrow(pathway_info) == 0) return(NULL)
     
-    # Option 3: Show description with statistics
-    nes <- round(results@result$NES[1], 3)
-    pval <- format(results@result$p.adjust[1], digits = 3)
+    gene_set_name <- pathway_info$Description[1]
+    nes <- round(pathway_info$NES[1], 3)
+    pval <- format(pathway_info$p.adjust[1], digits = 3)
+    
+    # Create the plot with base_size parameter for larger text
     enrichplot::gseaplot2(
-     results, 
-     geneSetID = gene_set_id,
-     title = paste0(gene_set_name, "\nNES = ", nes, ", Adjusted p-value = ", pval)
+      results, 
+      geneSetID = selected_id,
+      title = paste0(gene_set_name, "\nNES = ", nes, ", Adjusted p-value = ", pval),
+      base_size = 14  # This will make all text larger proportionally
     )
   })
+  
+  # Update the output for gsea_gseaplot
+  output$gsea_gseaplot <- renderPlot({
+    gsea_plot_reactive()
+  })
+  
+  # Add download handler for GSEA plot
+  output$download_gsea_plot <- downloadHandler(
+    filename = function() {
+      paste0("gsea_plot_", gsub("[^[:alnum:]]", "_", input$gsea_pathway_select), "_", Sys.Date(), ".png")
+    },
+    content = function(file) {
+      # Save the plot
+      ggsave(file, plot = gsea_plot_reactive(), 
+             width = 10, height = 8, dpi = 300, units = "in")
+    }
+  )
 }
