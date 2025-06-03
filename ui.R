@@ -13,7 +13,7 @@
 # Load libraries
 library(shiny); library(shinycssloaders); library(shinyalert); library(shinydashboard)
 library(dashboardthemes); library(DT); library(plotly); library(data.table)
-library(shinyjs); library(shinyBS)
+library(shinyjs); library(shinyBS); library(shinybusy)
 
 # Load custom modules
 source("functions.R")
@@ -46,6 +46,13 @@ ui <- dashboardPage(
   # Main content area
   dashboardBody(
     shinyjs::useShinyjs(),
+    add_busy_gif(
+      src = "load.gif", # Add a cool loading gif when server is bisy
+      height = 90,
+      width = 90,
+      position = "bottom-right",
+      margins = c(20, 20) 
+    ), 
     customTheme,
     tags$head(tags$style(HTML(".box { border-top: 3px solid #61b644; }"))),
     
