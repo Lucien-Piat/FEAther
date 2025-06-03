@@ -96,22 +96,28 @@ enrichmentControlsUI <- function(prefix, button_id, button_label, tooltip_id = N
            div(style = "display: flex; align-items: center;",
                selectInput(paste0(prefix, "_p_adjust_method"), "P-Adjust Method:",
                            choices = c("Bonferroni" = "BH", "False Discovery Rate (FDR)" = "fdr"),
-                           selected = "BH"),
+                           selected = "BH", width = "100%"),
                tags$span(icon("info-circle"), id = tooltip_id,
                          style = "cursor: pointer; margin-left: 5px;")),
            bsTooltip(id = tooltip_id,
                      title = "P-value adjustment method corrects for multiple testing. FDR is less stringent than Bonferroni. See About tab for details.",
                      placement = "right", trigger = "hover"),
            
-           # Ontology selector
+           # Ontology selector with better spacing
            tags$hr(style = "margin: 15px 0;"),
            div(style = "display: flex; align-items: center;",
-               selectInput(paste0(prefix, "_ontology"), "Ontology:",
-                           choices = c("Biological Process  " = "BP", "Molecular Function  " = "MF",
-                                       "Cellular Component  " = "CC", "All" = "ALL"),
-                           selected = "BP"),
+               # Add padding-right to prevent arrow overlap
+               tags$div(style = "width: 100%; padding-right: 30px;",
+                        selectInput(paste0(prefix, "_ontology"), "Ontology:",
+                                    choices = c("Biological Process" = "BP", 
+                                                "Molecular Function" = "MF",
+                                                "Cellular Component" = "CC", 
+                                                "All" = "ALL"),
+                                    selected = "BP",
+                                    width = "100%")
+               ),
                tags$span(icon("info-circle"), id = paste0(prefix, "_ontology_info"),
-                         style = "cursor: pointer; margin-left: 5px;")),
+                         style = "cursor: pointer; margin-left: -25px; z-index: 10; position: relative;")),
            bsTooltip(id = paste0(prefix, "_ontology_info"),
                      title = "Gene Ontology categories: BP (what biological goals are accomplished), MF (molecular activities), CC (where in the cell it happens)",
                      placement = "right", trigger = "hover")
