@@ -78,7 +78,8 @@ install.packages(c(
   "plotly", 
   "shinyjs",
   "ggridges", 
-  "shinyBS"
+  "shinyBS",
+  "shinybusy"
 ))
 
 # From Bioconductor
