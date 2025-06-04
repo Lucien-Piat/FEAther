@@ -69,28 +69,20 @@ FEAther/
 
 ## Running the App
 
-### With Docker (recommended)
+### 🚀 Lancement rapide via Docker (commande simple)
 
-Clone this repository to your local machine:
+[DockerHub](https://hub.docker.com/r/drelioss/feather)
 
-```bash
-git clone https://github.com/Lucien-Piat/FEAther.git
-cd FEAther
-```
-
-To run FEAther in a Docker container:
-
-From the root of the FEAther directory, build the Docker image:
+Pour exécuter l'application FEAther sans fichier de configuration, utilisez simplement :
 
 ```bash
-docker build -t feather_app .
+docker run -d \
+  --name feather_app \
+  --restart unless-stopped \
+  -p 3838:3838 \
+  drelioss/feather:latest
 ```
 
-Once the build is complete, run the container:
-
-```bash
-docker run -d -p 3838:3838 feather_app
-```
 
 Open a web browser and go to <http://localhost:3838> to use the FEAther application.
 
