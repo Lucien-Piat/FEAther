@@ -1,11 +1,11 @@
-# FEA-ther (Functional Enrichment Analysis Tool)
+# FEAther (Functional Enrichment Analysis Tool)
 
 ## Overview
 
-FEA-ther is a Shiny application designed for functional enrichment analysis of biological data. It allows users to upload CSV files, select various analysis options, and visualize results through interactive plots and tables. This tool is particularly useful for researchers and biologists who wish to gain insights from their data.
+FEAther is a Shiny application designed for functional enrichment analysis of biological data. It allows users to upload CSV files, select various analysis options, and visualize results through interactive plots and tables. This tool is particularly useful for researchers and biologists who wish to gain insights from their data.
 
 Preview of home page of the app:
-![FEA-ther Home Screenshot](www/overview.png)
+![FEAther Home Screenshot](www/overview.png)
 
 ## Authors
 
