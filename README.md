@@ -69,11 +69,10 @@ FEAther/
 
 ## Running the App
 
-### 🚀 Lancement rapide via Docker (commande simple)
-
+### 🚀 Using Docker (recommended)
 [DockerHub](https://hub.docker.com/r/drelioss/feather)
 
-Pour exécuter l'application FEAther sans fichier de configuration, utilisez simplement :
+To launch FEAther simply copy-paste in your terminal this command:
 
 ```bash
 docker run -d \
