@@ -267,6 +267,7 @@ Guangchuang Yu, Qing-Yu He. ReactomePA: an R/Bioconductor package for reactome p
 #### 📦 `enrichplot`
 
 Guangchuang Yu, Li-Gen Wang, Yanyan Han and Qing-Yu He. ClusterProfiler: an R package for comparing biological themes among gene clusters. OMICS: A Journal of Integrative Biology. 2012, 16(5):284-287
+
 ---
 
 By using this project, you agree to cite the above packages where applicable. For further details on how to install or use each package, refer to their respective CRAN pages.
