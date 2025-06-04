@@ -15,8 +15,8 @@
 library("shiny")
 
 # Source external functions, server, UI, and custom theme before calling shinyApp
-source("server.R")        # Server logic
-source("ui.R")            # UI layout
+source("server.R") # Server logic
+source("ui.R") # UI layout
 
 # Call shinyApp after everything is sourcedx
 shinyApp(ui, server)

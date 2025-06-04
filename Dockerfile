@@ -1,42 +1,48 @@
-# -----------------------------------------
-# Project: FEA-ther (Functional Enrichment Analysis Tool)
-# Author: Maël Louis, Antoine Malet and Lucien Piat 
-# Affiliation: Rouen Normandie University
-# Creation: 04/10/2024
-# Last update : 08/05/2025
-# -----------------------------------------
-
-# Use the Rocker Shiny image as the base
+# Étape 1 : Image de base avec Conda/Mamba
 FROM rocker/shiny:latest
 
-# Install system dependencies required for R packages
+# Installer utilitaires système et mamba
 RUN apt-get update && apt-get install -y \
     libcurl4-openssl-dev \
     libssl-dev \
     libxml2-dev \
+    libgit2-dev \
+    wget \
+    bzip2 \
+    ca-certificates \
+    libglpk-dev \
+    libxt-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# Install CRAN packages required by the app
-RUN R -e "install.packages(c('shiny', 'shinycssloaders', 'shinyalert', 'shinydashboard', \
-    'dashboardthemes', 'DT', 'shinyjs', 'ggplot2', 'ggridges', 'data.table', \
-    'dplyr', 'plotly', 'shinyBS'), repos = 'https://cran.rstudio.com/')"
+# Installer mamba pour gérer l'environnement plus rapidement que conda
+RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh && \
+    bash miniconda.sh -b -p /opt/conda && \
+    rm miniconda.sh
+ENV PATH=/opt/conda/bin:$PATH
 
-# Install Bioconductor packages
-RUN R -e "install.packages('BiocManager', repos = 'https://cran.rstudio.com/')" \
-    && R -e "BiocManager::install(c('clusterProfiler', 'org.Mm.eg.db', 'org.Hs.eg.db'), ask = FALSE)"
+# Copier l’environnement personnalisé
+COPY FEAther_env.yml /srv/shiny-server/FEAther_env.yml
 
-# Create a directory for the Shiny app
-RUN mkdir -p /srv/shiny-server/FEAther
+# Créer et activer l’environnement
+RUN conda install -y -c conda-forge mamba && \
+    mamba env create -f /srv/shiny-server/FEAther_env.yml && \
+    conda clean -a
 
-# Copy the Shiny app files into the Docker image
-COPY . /srv/shiny-server/FEAther
+# Activer l’environnement par défaut au démarrage du conteneur
+ENV CONDA_DEFAULT_ENV=FEAther
+ENV PATH /opt/conda/envs/FEAther/bin:$PATH
 
-# Copy custom Shiny Server configuration
-COPY shiny-server.conf /etc/shiny-server/shiny-server.conf
+# Copier le code de l’application
+COPY . /srv/shiny-server/
 
-# Expose the port that Shiny Server listens on
+# Donner les droits nécessaires
+RUN chown -R shiny:shiny /srv/shiny-server
+
+# Exposer le port Shiny
 EXPOSE 3838
 
-# Start Shiny Server
-CMD ["/usr/bin/shiny-server"]
+# Lancer le serveur
+CMD ["R", "-e", "shiny::runApp('/srv/shiny-server', host = '0.0.0.0', port = 3838)"]
