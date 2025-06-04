@@ -36,7 +36,7 @@ All required R packages are listed in the `Feather_env.yml` conda environment fi
 
 ### Hardware
 
-- Minimum 4 GB RAM (8 GB+ recommended for large datasets and smooth interactive use)  
+- Minimum 2 GB RAM (4 GB+ recommended for large datasets and smooth interactive use)  
 - Internet connection (for initial package installation and online deployment)  
 
 ### Operating System
