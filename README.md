@@ -4,6 +4,9 @@
 
 FEA-ther is a Shiny application designed for functional enrichment analysis of biological data. It allows users to upload CSV files, select various analysis options, and visualize results through interactive plots and tables. This tool is particularly useful for researchers and biologists who wish to gain insights from their data.
 
+Preview of home page of the app:
+![FEA-ther Home Screenshot](www/overview.png)
+
 ## Authors
 
 **Maël Louis, Antoine Malet and Lucien Piat**  
@@ -158,7 +161,7 @@ shiny::runApp()
 
 ## Dependencies
 
-### Liste des packages utilisés
+### List of packages
 
 #### CRAN
 
@@ -279,4 +282,4 @@ _(This project is part of an academic school work conducted at Université de Ro
 
 This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)**.  
 You are free to share and modify this project, but **not for commercial purposes**.  
-Full license details: [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)  
+[License details](./LICENSE)
