@@ -85,14 +85,17 @@ install.packages(c(
   "dplyr", 
   "plotly", 
   "shinyjs",
-  "ggridges",
+  "ggridges", 
+  "shinyBS",
+  "shinybusy"
 ))
 
 # From Bioconductor
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager", repos = "https://cran.rstudio.com/")
 
-BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db"), ask = FALSE)
+BiocManager::install(c("clusterProfiler", "org.Mm.eg.db", "org.Hs.eg.db", "DOSE", "pathview", "ReactomePA", "enrichplot"), ask = FALSE)
+
 ```
 
 
