@@ -21,7 +21,7 @@ Affiliation: Rouen Normandie University
 
 ## Requirements
 
-To successfully run FEA-ther, please ensure your system meets the following requirements:
+To successfully run FEAther, please ensure your system meets the following requirements:
 
 ### Software
 
