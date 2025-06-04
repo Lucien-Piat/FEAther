@@ -24,16 +24,16 @@ RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -
 ENV PATH=/opt/conda/bin:$PATH
 
 # Copier l’environnement personnalisé
-COPY Feather_env.yml /srv/shiny-server/Feather_env.yml
+COPY FEAther_env.yml /srv/shiny-server/FEAther_env.yml
 
 # Créer et activer l’environnement
 RUN conda install -y -c conda-forge mamba && \
-    mamba env create -f /srv/shiny-server/Feather_env.yml && \
+    mamba env create -f /srv/shiny-server/FEAther_env.yml && \
     conda clean -a
 
 # Activer l’environnement par défaut au démarrage du conteneur
-ENV CONDA_DEFAULT_ENV=Feather
-ENV PATH /opt/conda/envs/Feather/bin:$PATH
+ENV CONDA_DEFAULT_ENV=FEAther
+ENV PATH /opt/conda/envs/FEAther/bin:$PATH
 
 # Copier le code de l’application
 COPY . /srv/shiny-server/
