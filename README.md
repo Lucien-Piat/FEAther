@@ -69,10 +69,6 @@ FEAther/
 
 ## Running the App
 
-### Online
-
-Click this link : <https://lucien-piat.shinyapps.io/feather/>
-
 ### With Docker (recommended)
 
 Clone this repository to your local machine:
@@ -158,6 +154,10 @@ Click Run App in RStudio or run the following command in the R console:
 library("shiny")
 shiny::runApp()
 ```
+
+### Online
+
+Click this link : <https://lucien-piat.shinyapps.io/feather/>
 
 ## Dependencies
 
