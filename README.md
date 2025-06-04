@@ -198,27 +198,33 @@ This project makes use of several R packages. If you are using any part of this 
 
 #### 📦 `shiny`
 
-Chang W, Cheng J, Allaire J, Sievert C, Schloerke B, Xie Y, Allen J, McPherson J, Dipert A, Borges B (2024). _shiny: Web Application Framework for R_. R package version 1.10.0, <https://CRAN.R-project.org/package=shiny>.
+Chang W, Cheng J, Allaire J, Sievert C, Schloerke B, Xie Y, Allen J, McPherson J, Dipert A, Borges B (2024). _shiny: Web Application Framework for R_. R package version 1.10.0, 
+<https://CRAN.R-project.org/package=shiny>.
 
 #### 📦 `shinydashboard`
 
-Chang W, Borges Ribeiro B (2021). _shinydashboard: Create Dashboards with 'Shiny'_. R package version 0.7.2, <https://CRAN.R-project.org/package=shinydashboard>.
+Chang W, Borges Ribeiro B (2021). _shinydashboard: Create Dashboards with 'Shiny'_. R package version 0.7.2,
+<https://CRAN.R-project.org/package=shinydashboard>.
 
 #### 📦 `shinycssloaders`
 
-Attali D, Sali A (2024). _shinycssloaders: Add Loading Animations to a 'shiny' Output While It's Recalculating_. R package version 1.1.0, <https://CRAN.R-project.org/package=shinycssloaders>.
+Attali D, Sali A (2024). _shinycssloaders: Add Loading Animations to a 'shiny' Output While It's Recalculating_. R package version 1.1.0, 
+<https://CRAN.R-project.org/package=shinycssloaders>.
 
 #### 📦 `shinyalert`
 
-Attali D, Edwards T (2024). _shinyalert: Easily Create Pretty Popup Messages (Modals) in 'Shiny'_. R package version 3.1.0, <https://CRAN.R-project.org/package=shinyalert>.
+Attali D, Edwards T (2024). _shinyalert: Easily Create Pretty Popup Messages (Modals) in 'Shiny'_. R package version 3.1.0, 
+<https://CRAN.R-project.org/package=shinyalert>.
 
 #### 📦 `dashboardthemes`
 
-Lilovski N (2022). _dashboardthemes: Customise the Appearance of 'shinydashboard' Applications using Themes_. R package version 1.1.6, <https://CRAN.R-project.org/package=dashboardthemes>.
+Lilovski N (2022). _dashboardthemes: Customise the Appearance of 'shinydashboard' Applications using Themes_. R package version 1.1.6,
+<https://CRAN.R-project.org/package=dashboardthemes>.
 
 #### 📦 `DT`
 
-Xie Y, Cheng J, Tan X (2024). _DT: A Wrapper of the JavaScript Library 'DataTables'_. R package version 0.33, <https://CRAN.R-project.org/package=DT>.
+Xie Y, Cheng J, Tan X (2024). _DT: A Wrapper of the JavaScript Library 'DataTables'_. R package version 0.33, 
+<https://CRAN.R-project.org/package=DT>.
 
 #### 📦 `ggplot2`
 
@@ -226,11 +232,13 @@ Wickham H (2016). _ggplot2: Elegant Graphics for Data Analysis_. Springer-Verlag
 
 #### 📦 `data.table`
 
-Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T, Schwendinger B, Krylov I (2025). _data.table: Extension of `data.frame`_. R package version 1.17.0, <https://CRAN.R-project.org/package=data.table>.
+Barrett T, Dowle M, Srinivasan A, Gorecki J, Chirico M, Hocking T, Schwendinger B, Krylov I (2025). _data.table: Extension of `data.frame`_. R package version 1.17.0,
+<https://CRAN.R-project.org/package=data.table>.
 
 #### 📦 `dplyr`
 
-Wickham H, François R, Henry L, Müller K, Vaughan D (2023). _dplyr: A Grammar of Data Manipulation_. R package version 1.1.4, <https://CRAN.R-project.org/package=dplyr>.
+Wickham H, François R, Henry L, Müller K, Vaughan D (2023). _dplyr: A Grammar of Data Manipulation_. R package version 1.1.4, 
+<https://CRAN.R-project.org/package=dplyr>.
 
 #### 📦 `plotly`
 
@@ -238,7 +246,8 @@ Sievert C (2020). _Interactive Web-Based Data Visualization with R, plotly, and 
 
 #### 📦 `shinyjs`
 
-Attali D (2021). _shinyjs: Easily Improve the User Experience of Your Shiny Apps in Seconds_. R package version 2.1.0, <https://CRAN.R-project.org/package=shinyjs>.
+Attali D (2021). _shinyjs: Easily Improve the User Experience of Your Shiny Apps in Seconds_. R package version 2.1.0,
+<https://CRAN.R-project.org/package=shinyjs>.
 
 #### 📦 `clusterProfiler`
 
