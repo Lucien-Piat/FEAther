@@ -537,3 +537,67 @@ render_pathway_plot <- function(plot_func, pathway_result, show_category = NULL,
   p <- p + (custom_theme %||% theme_minimal())
   print(p)
 }
+
+# Filter GO enrichment results by term depth/level
+filter_go_by_level <- function(ego_result, min_level = 3, max_level = 8, ontology = "BP") {
+  if (is.null(ego_result) || nrow(ego_result@result) == 0) return(ego_result)
+  
+  # Get GO term IDs
+  go_ids <- ego_result@result$ID
+  
+  # Calculate GO levels using GO.db
+  if (requireNamespace("GO.db", quietly = TRUE)) {
+    # Get ancestor list based on the provided ontology parameter
+    ancestor_list <- switch(ontology,
+                            "BP" = as.list(GO.db::GOBPANCESTOR),
+                            "MF" = as.list(GO.db::GOMFANCESTOR),
+                            "CC" = as.list(GO.db::GOCCANCESTOR),
+                            "ALL" = NULL,  # Handle ALL case
+                            NULL
+    )
+    
+    # If ontology is "ALL", we need to check each term individually
+    if (ontology == "ALL" || is.null(ancestor_list)) {
+      go_levels <- sapply(go_ids, function(id) {
+        # Try all three ontologies
+        for (ont_type in c("BP", "MF", "CC")) {
+          ancestors_list <- switch(ont_type,
+                                   "BP" = as.list(GO.db::GOBPANCESTOR),
+                                   "MF" = as.list(GO.db::GOMFANCESTOR),
+                                   "CC" = as.list(GO.db::GOCCANCESTOR)
+          )
+          ancestors <- ancestors_list[[id]]
+          if (!is.null(ancestors) && !all(is.na(ancestors))) {
+            ancestors <- ancestors[ancestors != "all"]
+            return(length(ancestors) + 1)
+          }
+        }
+        return(NA)
+      })
+    } else {
+      # Calculate depth for each term
+      go_levels <- sapply(go_ids, function(id) {
+        ancestors <- ancestor_list[[id]]
+        if (is.null(ancestors) || all(is.na(ancestors))) {
+          return(NA)
+        }
+        ancestors <- ancestors[ancestors != "all"]
+        length(ancestors) + 1
+      })
+    }
+    
+    # Filter by level
+    keep_idx <- which(!is.na(go_levels) & go_levels >= min_level & go_levels <= max_level)
+    
+    if (length(keep_idx) > 0) {
+      ego_result@result <- ego_result@result[keep_idx, ]
+      
+      if (length(ego_result@geneSets) > 0) {
+        kept_ids <- ego_result@result$ID
+        ego_result@geneSets <- ego_result@geneSets[names(ego_result@geneSets) %in% kept_ids]
+      }
+    }
+  }
+  
+  return(ego_result)
+}
