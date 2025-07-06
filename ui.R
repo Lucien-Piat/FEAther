@@ -175,7 +175,27 @@ ui <- dashboardPage(
                   tags$hr(),
                   fluidRow(column(7, sliderInput("ora_show_category", "Number of Terms to Plot:",
                     min = 5, max = 50, value = 15, step = 1
-                  )))
+                  ))), 
+                  tags$hr(),
+                  fluidRow(
+                    column(7, 
+                           sliderInput("ora_go_level", "GO Term Level Filter:",
+                                       min = 1, max = 10, value = c(3, 8), step = 1),
+                           tags$p("Filter GO terms by their depth in the ontology hierarchy", 
+                                  style = "font-size: 0.9em; color: #666;")
+                    ),
+                    column(5,
+                           tags$div(style = "margin-top: 20px;",
+                                    tags$span(icon("info-circle"), id = "ora_go_level_info",
+                                              style = "cursor: pointer;"),
+                                    tags$span(" Higher levels = more specific terms", 
+                                              style = "font-size: 0.9em; margin-left: 5px;")
+                           )
+                    )
+                  ),
+                  bsTooltip(id = "ora_go_level_info",
+                            title = "GO terms are organized hierarchically. Level 1-3 are broad categories, 4-6 are intermediate, 7+ are very specific. Filtering helps reduce redundancy.",
+                            placement = "right", trigger = "hover")
                 ),
 
                 # ORA outputs
@@ -214,7 +234,27 @@ ui <- dashboardPage(
                   tags$hr(),
                   fluidRow(column(7, sliderInput("gsea_show_category", "Number of Terms to Plot:",
                     min = 5, max = 50, value = 15, step = 1
-                  )))
+                  ))),
+                  tags$hr(),
+                  fluidRow(
+                    column(7, 
+                           sliderInput("gsea_go_level", "GO Term Level Filter:",
+                                       min = 1, max = 10, value = c(3, 8), step = 1),
+                           tags$p("Filter GO terms by their depth in the ontology hierarchy", 
+                                  style = "font-size: 0.9em; color: #666;")
+                    ),
+                    column(5,
+                           tags$div(style = "margin-top: 20px;",
+                                    tags$span(icon("info-circle"), id = "ora_go_level_info",
+                                              style = "cursor: pointer;"),
+                                    tags$span(" Higher levels = more specific terms", 
+                                              style = "font-size: 0.9em; margin-left: 5px;")
+                           )
+                    )
+                  ),
+                  bsTooltip(id = "ora_go_level_info",
+                            title = "GO terms are organized hierarchically. Level 1-3 are broad categories, 4-6 are intermediate, 7+ are very specific. Filtering helps reduce redundancy.",
+                            placement = "right", trigger = "hover")
                 ),
 
                 # GSEA outputs

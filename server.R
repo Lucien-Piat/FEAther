@@ -10,7 +10,7 @@ library("shiny"); library("shinycssloaders"); library("shinyalert"); library("sh
 library("dashboardthemes"); library("plotly"); library("DT"); library("data.table")
 source("functions.R"); library("shinyjs"); library('clusterProfiler')
 library("org.Mm.eg.db"); library("org.Hs.eg.db"); library("ggplot2")
-library("ReactomePA"); library("enrichplot"); library("pathview")
+library("ReactomePA"); library("enrichplot"); library("pathview"); library("GO.db")
 
 server <- function(input, output, session) {
   
@@ -142,6 +142,13 @@ server <- function(input, output, session) {
     )
     
     if (is.null(ego) || nrow(ego@result) == 0) return(NULL)
+    
+    # Apply GO level filtering
+    ego <- filter_go_by_level(ego, 
+                              min_level = input$ora_go_level[1], 
+                              max_level = input$ora_go_level[2],
+                              ontology = input$ora_ontology) 
+    
     return(ego)
   })
   
@@ -206,6 +213,13 @@ server <- function(input, output, session) {
     )
     
     if (is.null(gsea) || nrow(gsea@result) == 0) return(NULL)
+    
+    # Apply GO level filtering
+    gsea <- filter_go_by_level(gsea, 
+                               min_level = input$gsea_go_level[1], 
+                               max_level = input$gsea_go_level[2],
+                               ontology = input$gsea_ontology)
+    
     return(gsea)
   })
   
